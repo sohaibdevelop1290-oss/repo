@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ===================================
-#   LineageOS 20 Build Script
-#   For: OnePlus Nord N100 (billie2)
+#   LineageOS Build Script
+#   For: billie2
 # ===================================
 
 # --- Remove old local manifests ---
@@ -10,7 +10,7 @@ rm -rf .repo/local_manifests
 rm -rf .repo/manifests
 rm -rf .repo/manifest.xml
 
-# --- Remove Device Settings --- (Reason: Avoids sync/build conflicts on rerun)
+# --- Remove Device Settings --- (Reason: It Will fail sync when we re run this script)
 rm -rf device/qcom/sepolicy_vndr
 
 # --- Init ROM repo ---
@@ -18,6 +18,7 @@ repo init --depth=1 -u https://github.com/LineageOS/android.git -b lineage-20.0 
 
 # --- Sync ROM ---
 /opt/crave/resync.sh && \
+repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags --optimized-fetch --prune && \
 
 # --- Clone Device Tree ---
 rm -rf device/oneplus/billie2
@@ -42,12 +43,11 @@ git clone https://github.com/LineageOS/android_device_qcom_sepolicy_vndr -b line
 #   Build: billie2
 # ===================================
 
-# --- LineageOS Build ---
-echo "===== Starting LineageOS 20 Build ====="
+# --- Vanilla Build ---
+echo "===== Starting Vanilla Build ====="
 . build/envsetup.sh && \
 breakfast billie2 userdebug && \
 make installclean && \
 mka bacon
 
 echo "===== All builds completed successfully! ====="
-
