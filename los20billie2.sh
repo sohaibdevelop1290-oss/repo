@@ -56,9 +56,13 @@ ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 "$CLANG_DIR/libncurses.so.5"
 ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 "$CLANG_DIR/libtinfo.so.5"
 
 # Setup device variables
+export DEVICE="billie2"
 export BUILD_USERNAME="sohaib"
 export BUILD_HOSTNAME="crave"
 export SKIP_ABI_CHECKS=true
+
+# --- Create Target Output Directory ---
+mkdir -p out/target/product/${DEVICE}/
 
 # --- Vanilla Build Execution ---
 echo "===== Starting Vanilla Build ====="
