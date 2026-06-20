@@ -37,23 +37,19 @@ git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-
 rm -rf hardware/oneplus
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 hardware/oneplus
 
-# --- Clone Custom Sepolicy Tree ---
-git clone https://github.com/LineageOS/android_device_qcom_sepolicy_vndr -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
+# --- Clone Custom Sepolicy Tree (Updated with compatible legacy repo) ---
+git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
 
 # ==================================
 # Build: billie2
 # ==================================
 
 # --- Build environment setup ---
-echo "🔧 Fixing environment dependencies for Ubuntu 24.04..."
+echo "🔧 Injecting global system-wide libncurses/libtinfo fixes for Ubuntu 24.04..."
 
-# Create safe symlinks inside the prebuilt Clang folder using existing system libraries
-CLANG_DIR="prebuilts/clang/host/linux-x86/clang-3289846/lib64"
-mkdir -p "$CLANG_DIR"
-
-# Link Ubuntu 24.04's native libncurses 6 to look like version 5 for the compiler
-ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 "$CLANG_DIR/libncurses.so.5"
-ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 "$CLANG_DIR/libtinfo.so.5"
+# System-wide global fix so all host tools (clang, bcc_strip_attr, etc.) don't fail
+sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
+sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
 
 # Setup device variables
 export DEVICE="billie2"
