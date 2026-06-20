@@ -12,16 +12,6 @@ BUILD_LOG="build.log"
 OUT_DIR="out/target/product/${DEVICE}"
 START_TIME=$(date +%s)
 
-# Check if .env file exists (Non-fatal check)
-if [ -f ".env" ]; then
-    # Load your local secrets if available
-    set -o allexport
-    source .env
-    set +o allexport
-else
-    echo "⚠️ .env file not found, proceeding with local defaults..."
-fi
-
 # ================= TIMEZONE =================
 if [ -n "$TZ" ]; then
     sudo rm -f /etc/localtime
@@ -62,7 +52,7 @@ if [ -d ".repo/project-objects" ]; then
     echo "Main source tree is now clean."
 fi
 
-# Sync the repositories using the Crave sync script
+# Sync the repositories using the Crave sync script followed by manual sync
 /opt/crave/resync.sh && \
 repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags --optimized-fetch --prune
 if [ $? -ne 0 ]; then
@@ -88,7 +78,6 @@ source build/envsetup.sh
 export BUILD_USERNAME="sohaib"
 export BUILD_HOSTNAME="crave"
 export SKIP_ABI_CHECKS=true
-mkdir -p out/target/product/${DEVICE}/obj/KERNEL_OBJ/usr
 
 # Build the ROM
 breakfast ${DEVICE} userdebug
