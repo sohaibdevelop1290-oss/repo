@@ -2,7 +2,8 @@
 
 # ==================================
 # LineageOS Build Script
-# For: billie2
+# For: billie2 (Vanilla - No GApps)
+# Host System: Ubuntu 24.04 Compatibility
 # ==================================
 
 # --- Remove old local manifests ---
@@ -44,14 +45,22 @@ git clone https://github.com/LineageOS/android_device_qcom_sepolicy_vndr -b line
 # ==================================
 
 # --- Build environment setup ---
-echo "🔧 Fixing environment dependencies..."
-sudo apt-get update && sudo apt-get install -y libncurses5
+echo "🔧 Fixing environment dependencies for Ubuntu 24.04..."
 
+# Create safe symlinks inside the prebuilt Clang folder using existing system libraries
+CLANG_DIR="prebuilts/clang/host/linux-x86/clang-3289846/lib64"
+mkdir -p "$CLANG_DIR"
+
+# Link Ubuntu 24.04's native libncurses 6 to look like version 5 for the compiler
+ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 "$CLANG_DIR/libncurses.so.5"
+ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 "$CLANG_DIR/libtinfo.so.5"
+
+# Setup device variables
 export BUILD_USERNAME="sohaib"
 export BUILD_HOSTNAME="crave"
 export SKIP_ABI_CHECKS=true
 
-# --- Vanilla Build ---
+# --- Vanilla Build Execution ---
 echo "===== Starting Vanilla Build ====="
 . build/envsetup.sh && \
 breakfast billie2 userdebug && \
