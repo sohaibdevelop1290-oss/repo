@@ -79,10 +79,10 @@ mka bacon
 
 echo "🎉 ===== All builds completed successfully! ====="
 
-# ==================================
-# 🚚 Move Build Artifact to Devspaces
-# ==================================
-echo "🚚 Moving flashable .zip file to /crave devspaces..."
-mv out/target/product/${DEVICE}/lineage-20.0-*-UNOFFICIAL-${DEVICE}.zip "/crave devspaces/" 2>/dev/null || mv out/target/product/${DEVICE}/*.zip "/crave devspaces/"
-
-echo "🏁 Process finished!"
+# --- 📍 Final location check ---
+echo "📍 Checking build output artifacts..."
+ROM_DIR="out/target/product/${DEVICE}"
+ZIP_FILE=$(ls "$ROM_DIR" 2>/dev/null | grep -E "^lineage-.*\.zip$" | tail -n 1)
+if [ -n "$ZIP_FILE" ]; then
+    echo "📦 Output ROM Zip: ${ROM_DIR}/${ZIP_FILE}"
+fi
