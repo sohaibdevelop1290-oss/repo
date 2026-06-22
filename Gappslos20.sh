@@ -69,6 +69,10 @@ EOF
 # 🧱 Build: billie2
 # ==================================
 
+# --- 🧹 Deep Clean Output Directory ---
+echo "🧹 Wiping old out folder to free up space..."
+rm -rf out
+
 # --- 🔧 Build environment setup ---
 echo "🔧 Injecting global system-wide libncurses/libtinfo fixes for Ubuntu 24.04..."
 sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
