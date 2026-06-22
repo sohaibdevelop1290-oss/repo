@@ -53,6 +53,10 @@ git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_
 # 🧱 Build: billie2
 # ==================================
 
+# --- 🧹 Deep Clean Output Directory ---
+echo "🧹 Wiping old out folder to free up space..."
+rm -rf out
+
 # --- 🔧 Build environment setup ---
 echo "🔧 Injecting global system-wide libncurses/libtinfo fixes for Ubuntu 24.04..."
 
