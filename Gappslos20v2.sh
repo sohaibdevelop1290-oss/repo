@@ -2,7 +2,7 @@
 
 # ==================================
 # 📱 LineageOS Build Script
-# 🛠️ For: billie2 (Custom Tailored GApps List)
+# 🛠️ For: billie2 (Custom GApps + Authenticated Gofile Upload)
 # 💻 Host System: Ubuntu 24.04 Compatibility
 # ==================================
 
@@ -11,6 +11,9 @@ export DEVICE="billie2"
 export BUILD_USERNAME="sohaib"
 export BUILD_HOSTNAME="crave"
 export SKIP_ABI_CHECKS=true
+
+# 🔑 Gofile Personal API Token
+export GOFILE_TOKEN="2VzuAej5KVUSESSL8BF8P7EdYajBJs"
 
 # --- 🧹 Remove old local manifests ---
 echo "🧹 Removing old manifests..."
@@ -60,6 +63,14 @@ echo "📂 Fetching MindTheGApps implementation packages..."
 rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b arm64-20.0 vendor/gapps
 
+# --- ⚙️ GApps Integration Fix (ADDED HERE) ---
+echo "🔗 Linking MindTheGApps to device configuration..."
+DEVICE_MK="device/oneplus/billie2/device.mk"
+if [ -f "$DEVICE_MK" ]; then
+    # This line forces the device configuration tree to explicitly include GApps during compilation
+    echo '\$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)' >> "$DEVICE_MK"
+fi
+
 # --- ⚙️ Safely Force Custom App Exclusion Overrides ---
 echo "⚙️ Applying safe exclusions to vendor/gapps configurations..."
 cat <<EOF >> vendor/gapps/config/gapps_packages.mk
@@ -73,8 +84,13 @@ EOF
 # 🧱 Build: billie2
 # ==================================
 
-# --- 🧹 Clean Target Device Output Folder ---
-echo "🧹 Wiping old out/target/product/${DEVICE} folder to clear legacy build artifacts..."
+# --- 🧹 Full Old Build Directory Clobber & Clean ---
+echo "🧹 Initializing deep clean on the build directory..."
+. build/envsetup.sh
+make clean
+make clobber
+
+echo "🧹 Explicitly wiping target device folder..."
 rm -rf out/target/product/${DEVICE}
 
 # --- 🔧 Build environment setup ---
@@ -82,7 +98,6 @@ echo "🔧 Injecting global system-wide libncurses/libtinfo fixes for Ubuntu 24.
 sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
 sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
 
-# Force build framework to process our modified inline packages
 export WITH_GAPPS=true
 
 # --- 📁 Create Target Output Directory ---
@@ -90,8 +105,7 @@ echo "📁 Preparing local build output directories..."
 mkdir -p out/target/product/${DEVICE}/
 
 # --- 🚀 Build Execution ---
-echo "🚀 ===== Starting Customized GApps Build ====="
-. build/envsetup.sh && \
+echo "🚀 ===== Starting Full Clean Customized GApps Build ====="
 breakfast billie2 userdebug && \
 make installclean && \
 mka bacon
@@ -99,33 +113,60 @@ mka bacon
 echo "🎉 ===== All builds completed successfully! ====="
 
 # ==================================
-# 📦 Post-Build Artifact Handling
+# 📦 Post-Build Artifact Handling & Upload
 # ==================================
 
 echo "📍 Checking build output artifacts..."
 ROM_DIR="out/target/product/${DEVICE}"
-
-# Generate current date and timestamp strings (Format: YYYYMMDD-HHMM)
 NOW=$(date +"%Y%m%d-%H%M")
 
 # Find both distinct zip targets cleanly
 FLASHABLE_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage-20.0-*.zip" | grep -v "ota" | tail -n 1)
 OTA_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage_billie2-ota-*.zip" | tail -n 1)
 
-# Rename and Verify Flashable ROM
+# Helper function to handle authenticated Gofile API server uploads
+upload_to_gofile() {
+    local file_path="$1"
+    if [ -f "$file_path" ]; then
+        echo "☁️ Fetching best available Gofile upload server..."
+        local server=$(curl -s https://api.gofile.io/contents/getUploadServer | grep -o '"server":"[^"]*' | grep -o '[^"]*$')
+        
+        if [ -n "$server" ]; then
+            echo "🚀 Uploading $(basename "$file_path") to your personal account on server: $server..."
+            
+            # Form query passing authorization headers cleanly
+            local response=$(curl -H "Authorization: Bearer $GOFILE_TOKEN" -F "file=@$file_path" "https://${server}.gofile.io/contents/uploadfile")
+            
+            # Parse response download URL links
+            local download_page=$(echo "$response" | grep -o '"downloadPage":"[^"]*' | grep -o '[^"]*$')
+            if [ -n "$download_page" ]; then
+                echo "✅ Personal Upload Successful!"
+                echo "🔗 Download URL: $download_page"
+            else
+                echo "⚠️ Upload completed but failed to parse folder link structural data: $response"
+            fi
+        else
+            echo "⚠️ Could not retrieve an active server response node from Gofile API."
+        fi
+    fi
+}
+
+# Rename, Verify, and Upload Flashable ROM
 if [ -n "$FLASHABLE_ZIP" ] && [ -f "$FLASHABLE_ZIP" ]; then
     NEW_FLASHABLE="${FLASHABLE_ZIP%.zip}-${NOW}.zip"
     mv "$FLASHABLE_ZIP" "$NEW_FLASHABLE"
-    echo "📦 Flashable ROM stamped and ready at: $NEW_FLASHABLE"
+    echo "📦 Flashable ROM stamped ready at: $NEW_FLASHABLE"
+    upload_to_gofile "$NEW_FLASHABLE"
 else
     echo "⚠️ Target flashable ROM Zip file could not be found."
 fi
 
-# Rename and Verify OTA Update File
+# Rename, Verify, and Upload OTA Update File
 if [ -n "$OTA_ZIP" ] && [ -f "$OTA_ZIP" ]; then
     NEW_OTA="${OTA_ZIP%.zip}-${NOW}.zip"
     mv "$OTA_ZIP" "$NEW_OTA"
-    echo "📦 OTA Update package stamped and ready at: $NEW_OTA"
+    echo "📦 OTA Update package stamped ready at: $NEW_OTA"
+    upload_to_gofile "$NEW_OTA"
 else
     echo "⚠️ Target OTA Zip file could not be found."
 fi
