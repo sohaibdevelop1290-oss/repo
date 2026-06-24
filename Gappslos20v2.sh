@@ -72,18 +72,31 @@ if [ -f "$PRODUCT_MK" ]; then
     echo '$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)' >> "$PRODUCT_MK"
 fi
 
-# --- ⚙️ Safely Force Custom App Exclusion Overrides (FIXED PATH FOR SIGMA) ---
+# --- ⚙️ Custom App Exclusion Injection ---
 echo "⚙️ Applying safe exclusions to vendor/gapps configurations..."
 GAPPS_CONFIG="vendor/gapps/config.mk"
+
 if [ -f "$GAPPS_CONFIG" ]; then
+    echo "📝 Injecting custom tracking rules into: $GAPPS_CONFIG"
     cat <<EOF >> "$GAPPS_CONFIG"
 
-# Custom filtration block to enforce your specific request list
+# Custom filtration block to enforce specific request list
 CUSTOM_KEEP_APPS := ChromeHomePageProvider GoogleExtServices GooglePackageInstaller GmsCore Phonesky Chrome YouTube Gmail2 LatinIMEGoogle Drive GoogleSearchBox Photos
 PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
 else
     echo "⚠️ Warning: $GAPPS_CONFIG target file was not found to inject overrides."
+fi
+
+# --- 🚀 Dynamic Partition Capacity Adjustment ---
+echo "⚙️ Expanding device dynamic partitions limit to prevent size failures..."
+BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
+if [ -f "$BOARD_CONFIG" ]; then
+    # Modify the default size variable explicitly to allocate a safe 6GB ceiling limit
+    sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 5368709120/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
+    echo "✅ Dynamic partition group threshold safely updated inside BoardConfig.mk"
+else
+    echo "⚠️ Target BoardConfig.mk file was not found to inject partition resize modifications."
 fi
 
 # ==================================
@@ -143,7 +156,7 @@ upload_to_gofile() {
             # Submits directly to the updated /uploadFile endpoint route
             local response=$(curl -s -H "Authorization: Bearer $GOFILE_TOKEN" -F "file=@$file_path" "https://${server}.gofile.io/uploadFile")
             
-            # FIXED: Robust parsing mechanism via sed to capture the final link perfectly
+            # Robust parsing mechanism via sed to capture the final link perfectly
             local download_page=$(echo "$response" | sed -n 's/.*"downloadPage":"\([^"]*\)".*/\1/p')
             if [ -n "$download_page" ]; then
                 echo "✅ Personal Upload Successful!"
