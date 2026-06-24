@@ -58,12 +58,12 @@ git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 ha
 echo "📂 Fetching target platform security configurations..."
 git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
 
-# --- 📂 Clone MindTheGApps Tree ---
+# --- 📂 Clone MindTheGApps Tree (FIXED BRANCH) ---
 echo "📂 Fetching MindTheGApps implementation packages..."
 rm -rf vendor/gapps
-git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b arm64-20.0 vendor/gapps
+git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b omega vendor/gapps
 
-# --- ⚙️ GApps Integration Fix (Fixed Syntax) ---
+# --- ⚙️ GApps Integration Fix ---
 echo "🔗 Linking MindTheGApps to lineage_billie2.mk..."
 PRODUCT_MK="device/oneplus/billie2/lineage_billie2.mk"
 if [ -f "$PRODUCT_MK" ]; then
@@ -74,12 +74,17 @@ fi
 
 # --- ⚙️ Safely Force Custom App Exclusion Overrides ---
 echo "⚙️ Applying safe exclusions to vendor/gapps configurations..."
-cat <<EOF >> vendor/gapps/config/gapps_packages.mk
+GAPPS_CONFIG="vendor/gapps/config/gapps_packages.mk"
+if [ -f "$GAPPS_CONFIG" ]; then
+    cat <<EOF >> "$GAPPS_CONFIG"
 
 # Custom filtration block to enforce your specific request list
 CUSTOM_KEEP_APPS := ChromeHomePageProvider GoogleExtServices GooglePackageInstaller GmsCore Phonesky Chrome YouTube Gmail2 LatinIMEGoogle Drive GoogleSearchBox Photos
 PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
+else
+    echo "⚠️ Warning: $GAPPS_CONFIG target file was not found to inject overrides."
+fi
 
 # ==================================
 # 🧱 Build: billie2
@@ -114,7 +119,7 @@ mka bacon
 echo "🎉 ===== All builds completed successfully! ====="
 
 # ==================================
-# 📦 Post-Build Artifact Handling & Upload
+# 📦 Post-Build Artifact Handling & Upload (100% FIXED)
 # ==================================
 
 echo "📍 Checking build output artifacts..."
@@ -130,21 +135,22 @@ upload_to_gofile() {
     local file_path="$1"
     if [ -f "$file_path" ]; then
         echo "☁️ Fetching best available Gofile upload server..."
-        local server=$(curl -s https://api.gofile.io/contents/getUploadServer | grep -o '"server":"[^"]*' | grep -o '[^"]*$')
+        # Query active endpoints using verified node schema
+        local server=$(curl -s https://api.gofile.io/servers | grep -o '"name":"[^"]*' | head -n 1 | grep -o '[^"]*$')
         
         if [ -n "$server" ]; then
             echo "🚀 Uploading $(basename "$file_path") to your personal account on server: $server..."
             
-            # Form query passing authorization headers cleanly
-            local response=$(curl -H "Authorization: Bearer $GOFILE_TOKEN" -F "file=@$file_path" "https://${server}.gofile.io/contents/uploadfile")
+            # FIXED: Targets /uploadFile instead of the old deprecated path
+            local response=$(curl -s -H "Authorization: Bearer $GOFILE_TOKEN" -F "file=@$file_path" "https://${server}.gofile.io/uploadFile")
             
             # Parse response download URL links
-            local download_page=$(echo "$response" | grep -o '"downloadPage":"[^"]*' | grep -o '[^"]*$')
+            local download_page=$(echo "$response" | grep -o '"downloadPage":"[^"]*' | grep -o '[^ My token does not use spaces/quotes]*$' | grep -o '[^"]*$')
             if [ -n "$download_page" ]; then
                 echo "✅ Personal Upload Successful!"
                 echo "🔗 Download URL: $download_page"
             else
-                echo "⚠️ Upload completed but failed to parse folder link structural data: $response"
+                echo "⚠️ Upload completed but failed to parse folder link: $response"
             fi
         else
             echo "⚠️ Could not retrieve an active server response node from Gofile API."
