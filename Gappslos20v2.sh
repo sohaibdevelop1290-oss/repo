@@ -92,9 +92,9 @@ fi
 echo "⚙️ Expanding device dynamic partitions limit to prevent size failures..."
 BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
 if [ -f "$BOARD_CONFIG" ]; then
-    # Modify the default size variable explicitly to allocate a safe 6GB ceiling limit
-    sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 5368709120/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
-    echo "✅ Dynamic partition group threshold safely updated inside BoardConfig.mk"
+    # FIXED: Uses a wildcard pattern to safely match and replace any previous partition value
+    sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
+    echo "✅ Dynamic partition group threshold safely updated to 6GB inside BoardConfig.mk"
 else
     echo "⚠️ Target BoardConfig.mk file was not found to inject partition resize modifications."
 fi
