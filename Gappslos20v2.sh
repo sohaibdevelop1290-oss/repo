@@ -63,12 +63,13 @@ echo "📂 Fetching MindTheGApps implementation packages..."
 rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b arm64-20.0 vendor/gapps
 
-# --- ⚙️ GApps Integration Fix (ADDED HERE) ---
-echo "🔗 Linking MindTheGApps to device configuration..."
-DEVICE_MK="device/oneplus/billie2/device.mk"
-if [ -f "$DEVICE_MK" ]; then
-    # This line forces the device configuration tree to explicitly include GApps during compilation
-    echo '\$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)' >> "$DEVICE_MK"
+# --- ⚙️ GApps Integration Fix (Fixed Syntax) ---
+echo "🔗 Linking MindTheGApps to lineage_billie2.mk..."
+PRODUCT_MK="device/oneplus/billie2/lineage_billie2.mk"
+if [ -f "$PRODUCT_MK" ]; then
+    echo "" >> "$PRODUCT_MK"
+    echo "# Include GApps configuration layers" >> "$PRODUCT_MK"
+    echo '$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)' >> "$PRODUCT_MK"
 fi
 
 # --- ⚙️ Safely Force Custom App Exclusion Overrides ---
