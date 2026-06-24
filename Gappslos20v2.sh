@@ -58,7 +58,7 @@ git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 ha
 echo "📂 Fetching target platform security configurations..."
 git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
 
-# --- 📂 Clone MindTheGApps Tree (FIXED: Using 'sigma' for Android 13) ---
+# --- 📂 Clone MindTheGApps Tree (Using verified 'sigma' branch) ---
 echo "📂 Fetching MindTheGApps implementation packages..."
 rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b sigma vendor/gapps
@@ -72,9 +72,9 @@ if [ -f "$PRODUCT_MK" ]; then
     echo '$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)' >> "$PRODUCT_MK"
 fi
 
-# --- ⚙️ Safely Force Custom App Exclusion Overrides ---
+# --- ⚙️ Safely Force Custom App Exclusion Overrides (FIXED PATH FOR SIGMA) ---
 echo "⚙️ Applying safe exclusions to vendor/gapps configurations..."
-GAPPS_CONFIG="vendor/gapps/config/gapps_packages.mk"
+GAPPS_CONFIG="vendor/gapps/config.mk"
 if [ -f "$GAPPS_CONFIG" ]; then
     cat <<EOF >> "$GAPPS_CONFIG"
 
@@ -143,8 +143,8 @@ upload_to_gofile() {
             # Submits directly to the updated /uploadFile endpoint route
             local response=$(curl -s -H "Authorization: Bearer $GOFILE_TOKEN" -F "file=@$file_path" "https://${server}.gofile.io/uploadFile")
             
-            # Parse response download URL links cleanly
-            local download_page=$(echo "$response" | grep -o '"downloadPage":"[^"]*' | head -n 1 | grep -o '[^"]*$')
+            # FIXED: Robust parsing mechanism via sed to capture the final link perfectly
+            local download_page=$(echo "$response" | sed -n 's/.*"downloadPage":"\([^"]*\)".*/\1/p')
             if [ -n "$download_page" ]; then
                 echo "✅ Personal Upload Successful!"
                 echo "🔗 Download URL: $download_page"
