@@ -99,10 +99,9 @@ fi
 # 🧱 Build: billie2
 # ==================================
 
-echo "🧹 Initializing deep clean on the build directory..."
+# [REMOVED MAKE CLEAN & MAKE CLOBBER TO PREVENT CRAVE ACCOUNT BAN]
+echo "🔧 Setting up build environment setup..."
 . build/envsetup.sh
-make clean
-make clobber
 rm -rf out/target/product/${DEVICE}
 
 echo "🔧 Injecting global system-wide libncurses/libtinfo fixes for Ubuntu 24.04..."
