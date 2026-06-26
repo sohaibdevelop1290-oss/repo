@@ -102,7 +102,7 @@ fi
 echo "🔧 Setting up build environment setup..."
 . build/envsetup.sh
 
-# ONLY clearing the specific target folder to safely delete the old zip file
+# ONLY clearing the specific old zip and img files to avoid full cache wiping
 echo "🧹 Safely clearing old flashable target artifacts..."
 rm -rf out/target/product/${DEVICE}/*.zip
 rm -rf out/target/product/${DEVICE}/*.img
@@ -193,13 +193,5 @@ else
 fi
 
 if [ -n "$OTA_ZIP" ] && [ -f "$OTA_ZIP" ]; then
-    NEW_OTA="${OTA_ZIP%.zip}-${NOW}.zip"
-    mv "$OTA_ZIP" "$NEW_OTA"
-    echo "📦 OTA Update package ready at: $NEW_OTA"
-    upload_to_gofile "$NEW_OTA"
-    upload_to_pixeldrain "$NEW_OTA"
-else
-    echo "⚠️ OTA Zip file could not be found."
-fi
-
-echo "🏁 Process finished safely!"
+    NEW_OTA="${OTA_ZIP%.zip}-${NOW
+    
