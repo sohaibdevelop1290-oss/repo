@@ -1,24 +1,25 @@
 #!/bin/bash
 
 # ==================================
-# 📱 LineageOS Build Script
+# 📱 LineageOS Safe Build Script
 # 🛠️ For: billie2 (Custom GApps + Dual Cloud Uploads)
 # 💻 Host System: Ubuntu 24.04 Compatibility
+# 🔒 Optimized for Crave.io (Incremental Build - No Clean)
 # ==================================
 
-# Setup device variables early so clean-up paths work
+# Setup device variables early
 export DEVICE="billie2"
 export BUILD_USERNAME="sohaib"
 export BUILD_HOSTNAME="crave"
 export SKIP_ABI_CHECKS=true
 
-# --- 🧹 Remove old local manifests ---
+# --- 🧹 Safe Local Manifest Cleanup ---
 echo "🧹 Removing old manifests..."
 rm -rf .repo/local_manifests
 rm -rf .repo/manifests
 rm -rf .repo/manifest.xml
 
-# --- 🗑️ Remove Device Settings ---
+# --- 🗑️ Safe Device Settings Reset ---
 echo "🗑️ Clearing legacy device configuration paths..."
 rm -rf device/qcom/sepolicy_vndr
 
@@ -26,10 +27,9 @@ rm -rf device/qcom/sepolicy_vndr
 echo "⚙️ Initializing LineageOS source tree..."
 repo init --depth=1 -u https://github.com/LineageOS/android.git -b lineage-20.0 --git-lfs
 
-# --- ⚡ Sync ROM ---
-echo "⚡ Synchronizing remote source repositories..."
-/opt/crave/resync.sh && \
-repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags --optimized-fetch --prune
+# --- ⚡ Safe Crave Sync ---
+echo "⚡ Synchronizing remote source repositories using Crave protocol..."
+/opt/crave/resync.sh
 
 # --- 📂 Clone Device Tree ---
 echo "📂 Fetching device configuration tree..."
@@ -55,7 +55,7 @@ git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 ha
 echo "📂 Fetching target platform security configurations..."
 git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
 
-# --- 📂 Clone MindTheGApps Tree (Using verified 'sigma' branch) ---
+# --- 📂 Clone MindTheGApps Tree ---
 echo "📂 Fetching MindTheGApps implementation packages..."
 rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b sigma vendor/gapps
@@ -96,13 +96,16 @@ else
 fi
 
 # ==================================
-# 🧱 Build: billie2
+# 🧱 Safe Build Execution (No Clean/No Clobber)
 # ==================================
 
-# [REMOVED MAKE CLEAN & MAKE CLOBBER TO PREVENT CRAVE ACCOUNT BAN]
 echo "🔧 Setting up build environment setup..."
 . build/envsetup.sh
-rm -rf out/target/product/${DEVICE}
+
+# ONLY clearing the specific target folder to safely delete the old zip file
+echo "🧹 Safely clearing old flashable target artifacts..."
+rm -rf out/target/product/${DEVICE}/*.zip
+rm -rf out/target/product/${DEVICE}/*.img
 
 echo "🔧 Injecting global system-wide libncurses/libtinfo fixes for Ubuntu 24.04..."
 sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
@@ -111,7 +114,7 @@ sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/li
 export WITH_GAPPS=true
 mkdir -p out/target/product/${DEVICE}/
 
-echo "🚀 ===== Starting Full Clean Customized GApps Build ====="
+echo "🚀 ===== Starting Safe Incremental GApps Build ====="
 breakfast billie2 userdebug && \
 make installclean && \
 mka bacon
@@ -199,4 +202,4 @@ else
     echo "⚠️ OTA Zip file could not be found."
 fi
 
-echo "🏁 Process finished!"
+echo "🏁 Process finished safely!"
