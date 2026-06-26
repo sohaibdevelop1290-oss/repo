@@ -102,7 +102,7 @@ fi
 echo "🔧 Setting up build environment setup..."
 . build/envsetup.sh
 
-# ONLY clearing the specific old zip and img files to avoid full cache wiping
+# ONLY clearing old output zips, images, and super_empty files to avoid full cache wiping
 echo "🧹 Safely clearing old flashable target artifacts..."
 rm -rf out/target/product/${DEVICE}/*.zip
 rm -rf out/target/product/${DEVICE}/*.img
@@ -131,6 +131,7 @@ NOW=$(date +"%Y%m%d-%H%M")
 
 FLASHABLE_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage-20.0-*.zip" | grep -v "ota" | tail -n 1)
 OTA_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage_billie2-ota-*.zip" | tail -n 1)
+SUPER_EMPTY_IMG=$(find "$ROM_DIR" -maxdepth 1 -name "super_empty.img" | tail -n 1)
 
 upload_to_gofile() {
     local file_path="$1"
@@ -182,6 +183,7 @@ upload_to_pixeldrain() {
     fi
 }
 
+# --- Upload Flashable ROM ---
 if [ -n "$FLASHABLE_ZIP" ] && [ -f "$FLASHABLE_ZIP" ]; then
     NEW_FLASHABLE="${FLASHABLE_ZIP%.zip}-${NOW}.zip"
     mv "$FLASHABLE_ZIP" "$NEW_FLASHABLE"
@@ -192,6 +194,26 @@ else
     echo "⚠️ Flashable ROM Zip file could not be found."
 fi
 
+# --- Upload OTA Package ---
 if [ -n "$OTA_ZIP" ] && [ -f "$OTA_ZIP" ]; then
-    NEW_OTA="${OTA_ZIP%.zip}-${NOW
-    
+    NEW_OTA="${OTA_ZIP%.zip}-${NOW}.zip"
+    mv "$OTA_ZIP" "$NEW_OTA"
+    echo "📦 OTA Update package ready at: $NEW_OTA"
+    upload_to_gofile "$NEW_OTA"
+    upload_to_pixeldrain "$NEW_OTA"
+else
+    echo "⚠️ OTA Zip file could not be found."
+fi
+
+# --- Upload Super Empty Image ---
+if [ -n "$SUPER_EMPTY_IMG" ] && [ -f "$SUPER_EMPTY_IMG" ]; then
+    NEW_SUPER_EMPTY="${SUPER_EMPTY_IMG%.img}-${NOW}.img"
+    mv "$SUPER_EMPTY_IMG" "$NEW_SUPER_EMPTY"
+    echo "📦 Super Empty Image ready at: $NEW_SUPER_EMPTY"
+    upload_to_gofile "$NEW_SUPER_EMPTY"
+    upload_to_pixeldrain "$NEW_SUPER_EMPTY"
+else
+    echo "⚠️ super_empty.img file could not be found."
+fi
+
+echo "🏁 Process finished safely!"
