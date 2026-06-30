@@ -3,7 +3,7 @@
 # ==================================
 # 📱 LineageOS Optimized Build Script
 # 🛠️ For: billie2 (OnePlus Nord N100 - Android 13)
-# 🔒 Phase 1 - Part 2: Recovery, Partition, Wi-Fi, Camera Color & Upload Fixes
+# 🔒 Phase 1 - Part 2: Recovery, Partition, Wi-Fi, Camera Color & 2GB ZRAM Fixes
 # 💻 Optimized for Crave.io (Incremental & Safe Protocols)
 # ==================================
 
@@ -112,7 +112,7 @@ if [ -f "$BOARD_CONFIG" ]; then
     # Resize dynamic partition size block to max safety limit
     sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
     
-    # Inject Recovery, Camera Color and ZRAM Configurations (Strictly Board Variables Only)
+    # Inject Recovery, Camera Color and Hardware ZRAM Drivers Configuration
     cat <<EOF >> "$BOARD_CONFIG"
 
 # Phase 1 Part 2 - Android 10 Transition Fixes
@@ -127,10 +127,27 @@ PRODUCT_PROPERTY_OVERRIDES += \\
     ro.hardware.egl=adreno \\
     debug.sf.enable_hwc_vds=1
 
-# Phase 1 Part 2 - ZRAM Performance Tuning
-💡_TUNING_ZRAM_ENABLE := true
+# Phase 1 Part 2 - ZRAM Hardware Drivers
+BOARD_USES_PV_ZRAM := true
 EOF
-    echo "✅ Recovery, Camera Color and ZRAM flags safely injected."
+    echo "✅ Recovery, Camera Color and ZRAM architecture flags safely injected."
+fi
+
+# --- 🧠 2GB ZRAM Core Injection (fstab setup) ---
+echo "🧠 Injecting 2GB ZRAM size limit into device tree fstab..."
+FSTAB_FILE=$(find device/oneplus/billie2/ -name "fstab.*" | head -n 1)
+if [ -n "$FSTAB_FILE" ] && [ -f "$FSTAB_FILE" ]; then
+    echo "📝 Modifying fstab entry in: $FSTAB_FILE"
+    sed -i '/zram/d' "$FSTAB_FILE"
+    echo "/dev/block/zram0  none  swap  defaults  zramsize=2147483648" >> "$FSTAB_FILE"
+    echo "✅ Fstab ZRAM 2GB setup complete."
+else
+    echo "⚠️ fstab file not found, creating fallback sysprop for ZRAM size in product mk..."
+    if [ -f "$PRODUCT_MK" ]; then
+        echo "" >> "$PRODUCT_MK"
+        echo "# Fallback ZRAM configuration override" >> "$PRODUCT_MK"
+        echo "PRODUCT_PROPERTY_OVERRIDES += ro.vendor.config.zram=true" >> "$PRODUCT_MK"
+    fi
 fi
 
 # ==================================
@@ -151,7 +168,7 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 export WITH_GAPPS=true
 mkdir -p out/target/product/${DEVICE}/
 
-echo "🚀 ===== Starting Safe GApps Build with Retrofit, Wi-Fi & Camera Fixes ====="
+echo "🚀 ===== Starting Safe GApps Build with Retrofit, Wi-Fi, Camera & ZRAM Fixes ====="
 breakfast billie2 userdebug && \
 mka bacon
 
