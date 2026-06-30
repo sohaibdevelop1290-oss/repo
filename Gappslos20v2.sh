@@ -146,7 +146,6 @@ mkdir -p out/target/product/${DEVICE}/
 
 echo "🚀 ===== Starting Safe GApps Build with Retrofit & Wi-Fi Fixes ====="
 breakfast billie2 userdebug && \
-make installclean && \
 mka bacon
 
 echo "🎉 ===== All builds completed successfully! ====="
