@@ -80,13 +80,16 @@ if [ -f "$WIFI_OVERLAY" ]; then
     sed -i 's/<string name="config_wifi_operating_country_code">.*<\/string>/<string name="config_wifi_operating_country_code"><\/string>/g' "$WIFI_OVERLAY"
 fi
 
-# --- ⚙️ GApps Integration Fix ---
-echo "🔗 Linking MindTheGApps to lineage_billie2.mk..."
+# --- ⚙️ GApps & Retrofit Integration Fix (lineage_billie2.mk) ---
+echo "🔗 Linking MindTheGApps and Retrofit Flags to lineage_billie2.mk..."
 PRODUCT_MK="device/oneplus/billie2/lineage_billie2.mk"
 if [ -f "$PRODUCT_MK" ]; then
     echo "" >> "$PRODUCT_MK"
     echo "# Include GApps configuration layers" >> "$PRODUCT_MK"
     echo '$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)' >> "$PRODUCT_MK"
+    echo "" >> "$PRODUCT_MK"
+    echo "# Phase 1 Part 2 - Retrofit Dynamic Partitions" >> "$PRODUCT_MK"
+    echo "PRODUCT_RETROFIT_DYNAMIC_PARTITIONS := true" >> "$PRODUCT_MK"
 fi
 
 # --- ⚙️ Custom App Exclusion (Lite GApps Enforcer) ---
@@ -102,18 +105,17 @@ PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
 fi
 
-# --- 🛠️ Retrofit Partition, Recovery & Camera Color Fixes (BoardConfig.mk) ---
-echo "⚙️ Injecting Retrofit, Recovery and Camera Color Fixes..."
+# --- 🛠️ Partition, Recovery & Camera Color Fixes (BoardConfig.mk) ---
+echo "⚙️ Injecting Board configurations..."
 BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
 if [ -f "$BOARD_CONFIG" ]; then
     # Resize dynamic partition size block to max safety limit
     sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
     
-    # Inject Retrofit, Recovery and Camera Color Configurations
+    # Inject Recovery, Camera Color and ZRAM Configurations (Strictly Board Variables Only)
     cat <<EOF >> "$BOARD_CONFIG"
 
-# Phase 1 Part 2 - Retrofit and Android 10 Transition Fixes
-PRODUCT_RETROFIT_DYNAMIC_PARTITIONS := true
+# Phase 1 Part 2 - Android 10 Transition Fixes
 TARGET_RECOVERY_IGNORE_TIMESTAMP := true
 BOARD_SUPPRESS_SECURE_ERASE := true
 
@@ -128,7 +130,7 @@ PRODUCT_PROPERTY_OVERRIDES += \\
 # Phase 1 Part 2 - ZRAM Performance Tuning
 💡_TUNING_ZRAM_ENABLE := true
 EOF
-    echo "✅ Retrofit, Recovery, Camera Color and ZRAM flags safely injected."
+    echo "✅ Recovery, Camera Color and ZRAM flags safely injected."
 fi
 
 # ==================================
