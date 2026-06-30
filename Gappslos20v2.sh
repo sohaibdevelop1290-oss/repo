@@ -3,7 +3,7 @@
 # ==================================
 # 📱 LineageOS Optimized Build Script
 # 🛠️ For: billie2 (OnePlus Nord N100 - Android 13)
-# 🔒 Phase 1 - Part 2: Recovery, Partition, Wi-Fi & Upload Fixes
+# 🔒 Phase 1 - Part 2: Recovery, Partition, Wi-Fi, Camera Color & Upload Fixes
 # 💻 Optimized for Crave.io (Incremental & Safe Protocols)
 # ==================================
 
@@ -67,10 +67,8 @@ echo "📶 Injecting Wi-Fi regional fixes for PTCL & hidden routers..."
 WIFI_INI=$(find device/oneplus/billie2/ vendor/oneplus/billie2/ -name "WCNSS_qcom_cfg.ini" | head -n 1)
 if [ -n "$WIFI_INI" ] && [ -f "$WIFI_INI" ]; then
     echo "📝 Modifying Wi-Fi configs in: $WIFI_INI"
-    # Set regulatory domain to world/global to unlock all channels
     sed -i 's/gCrpCc=.*/gCrpCc=00/g' "$WIFI_INI" 2>/dev/null || echo "gCrpCc=00" >> "$WIFI_INI"
     sed -i 's/gRegulatoryChangeCountry=.*/gRegulatoryChangeCountry=00/g' "$WIFI_INI" 2>/dev/null || echo "gRegulatoryChangeCountry=00" >> "$WIFI_INI"
-    # Ensure 2.4GHz bonding/channels are optimized
     sed -i 's/gChannelBondingMode24GHz=.*/gChannelBondingMode24GHz=1/g' "$WIFI_INI" 2>/dev/null
     echo "✅ WCNSS Wi-Fi ini file patched successfully."
 fi
@@ -79,7 +77,6 @@ fi
 WIFI_OVERLAY="device/oneplus/billie2/overlay/frameworks/base/core/res/res/values/config.xml"
 if [ -f "$WIFI_OVERLAY" ]; then
     echo "📝 Patching Wi-Fi overlay country code..."
-    # If config_wifi_operating_country_code exists, set it to empty or global strings
     sed -i 's/<string name="config_wifi_operating_country_code">.*<\/string>/<string name="config_wifi_operating_country_code"><\/string>/g' "$WIFI_OVERLAY"
 fi
 
@@ -105,14 +102,14 @@ PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
 fi
 
-# --- 🛠️ Retrofit Partition & Recovery Security Fixes (BoardConfig.mk) ---
-echo "⚙️ Injecting Retrofit & Legacy Dynamic Partition Flags..."
+# --- 🛠️ Retrofit Partition, Recovery & Camera Color Fixes (BoardConfig.mk) ---
+echo "⚙️ Injecting Retrofit, Recovery and Camera Color Fixes..."
 BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
 if [ -f "$BOARD_CONFIG" ]; then
     # Resize dynamic partition size block to max safety limit
     sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
     
-    # Inject Retrofit and Recovery bypass configurations
+    # Inject Retrofit, Recovery and Camera Color Configurations
     cat <<EOF >> "$BOARD_CONFIG"
 
 # Phase 1 Part 2 - Retrofit and Android 10 Transition Fixes
@@ -120,10 +117,18 @@ PRODUCT_RETROFIT_DYNAMIC_PARTITIONS := true
 TARGET_RECOVERY_IGNORE_TIMESTAMP := true
 BOARD_SUPPRESS_SECURE_ERASE := true
 
+# Phase 1 Part 2 - Camera Color & Video Playback Fixes
+TARGET_PRODUCT_PROP_FILES += device/oneplus/billie2/system.prop
+PRODUCT_PROPERTY_OVERRIDES += \\
+    vendor.display.enable_default_color_mode=1 \\
+    persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap \\
+    ro.hardware.egl=adreno \\
+    debug.sf.enable_hwc_vds=1
+
 # Phase 1 Part 2 - ZRAM Performance Tuning
 💡_TUNING_ZRAM_ENABLE := true
 EOF
-    echo "✅ Retrofit, Recovery and ZRAM flags safely injected into BoardConfig.mk"
+    echo "✅ Retrofit, Recovery, Camera Color and ZRAM flags safely injected."
 fi
 
 # ==================================
@@ -144,7 +149,7 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 export WITH_GAPPS=true
 mkdir -p out/target/product/${DEVICE}/
 
-echo "🚀 ===== Starting Safe GApps Build with Retrofit & Wi-Fi Fixes ====="
+echo "🚀 ===== Starting Safe GApps Build with Retrofit, Wi-Fi & Camera Fixes ====="
 breakfast billie2 userdebug && \
 mka bacon
 
