@@ -105,32 +105,38 @@ PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
 fi
 
-# --- 🛠️ Partition, Recovery & Camera Color Fixes (BoardConfig.mk) ---
+# --- 📺 Camera Color & Video Playback Fixes (system.prop) ---
+echo "📺 Injecting Camera Color and Display Fixes into system.prop..."
+SYSTEM_PROP="device/oneplus/billie2/system.prop"
+mkdir -p $(dirname "$SYSTEM_PROP")
+cat <<EOF >> "$SYSTEM_PROP"
+
+# Phase 1 Part 2 - Camera Color & Video Playback Fixes
+vendor.display.enable_default_color_mode=1
+persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap
+ro.hardware.egl=adreno
+debug.sf.enable_hwc_vds=1
+EOF
+echo "✅ Camera color and display properties successfully added to system.prop."
+
+# --- 🛠️ Partition & Recovery Fixes (BoardConfig.mk) ---
 echo "⚙️ Injecting Board configurations..."
 BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
 if [ -f "$BOARD_CONFIG" ]; then
     # Resize dynamic partition size block to max safety limit
     sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
     
-    # Inject Recovery, Camera Color and Hardware ZRAM Drivers Configuration
+    # Inject Recovery and Hardware ZRAM Drivers Configuration
     cat <<EOF >> "$BOARD_CONFIG"
 
 # Phase 1 Part 2 - Android 10 Transition Fixes
 TARGET_RECOVERY_IGNORE_TIMESTAMP := true
 BOARD_SUPPRESS_SECURE_ERASE := true
 
-# Phase 1 Part 2 - Camera Color & Video Playback Fixes
-TARGET_PRODUCT_PROP_FILES += device/oneplus/billie2/system.prop
-PRODUCT_PROPERTY_OVERRIDES += \\
-    vendor.display.enable_default_color_mode=1 \\
-    persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap \\
-    ro.hardware.egl=adreno \\
-    debug.sf.enable_hwc_vds=1
-
 # Phase 1 Part 2 - ZRAM Hardware Drivers
 BOARD_USES_PV_ZRAM := true
 EOF
-    echo "✅ Recovery, Camera Color and ZRAM architecture flags safely injected."
+    echo "✅ Recovery and ZRAM architecture flags safely injected into BoardConfig."
 fi
 
 # --- 🧠 2GB ZRAM Core Injection (fstab setup) ---
