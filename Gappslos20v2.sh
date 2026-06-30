@@ -3,7 +3,7 @@
 # ==================================
 # 📱 LineageOS Optimized Build Script
 # 🛠️ For: billie2 (OnePlus Nord N100 - Android 13)
-# 🔒 Phase 1 - Part 2: Recovery, Partition & Upload Fixes
+# 🔒 Phase 1 - Part 2: Recovery, Partition, Wi-Fi & Upload Fixes
 # 💻 Optimized for Crave.io (Incremental & Safe Protocols)
 # ==================================
 
@@ -59,6 +59,29 @@ git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_
 echo "📂 Fetching MindTheGApps packages..."
 rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b sigma vendor/gapps
+
+# --- 📶 Wi-Fi PTCL & Region Fix (Channel 12/13 Enable) ---
+echo "📶 Injecting Wi-Fi regional fixes for PTCL & hidden routers..."
+
+# 1. Force Global/Regulatory country code in Wi-Fi Config
+WIFI_INI=$(find device/oneplus/billie2/ vendor/oneplus/billie2/ -name "WCNSS_qcom_cfg.ini" | head -n 1)
+if [ -n "$WIFI_INI" ] && [ -f "$WIFI_INI" ]; then
+    echo "📝 Modifying Wi-Fi configs in: $WIFI_INI"
+    # Set regulatory domain to world/global to unlock all channels
+    sed -i 's/gCrpCc=.*/gCrpCc=00/g' "$WIFI_INI" 2>/dev/null || echo "gCrpCc=00" >> "$WIFI_INI"
+    sed -i 's/gRegulatoryChangeCountry=.*/gRegulatoryChangeCountry=00/g' "$WIFI_INI" 2>/dev/null || echo "gRegulatoryChangeCountry=00" >> "$WIFI_INI"
+    # Ensure 2.4GHz bonding/channels are optimized
+    sed -i 's/gChannelBondingMode24GHz=.*/gChannelBondingMode24GHz=1/g' "$WIFI_INI" 2>/dev/null
+    echo "✅ WCNSS Wi-Fi ini file patched successfully."
+fi
+
+# 2. Patch Android Framework Overlay for Wi-Fi Country Code
+WIFI_OVERLAY="device/oneplus/billie2/overlay/frameworks/base/core/res/res/values/config.xml"
+if [ -f "$WIFI_OVERLAY" ]; then
+    echo "📝 Patching Wi-Fi overlay country code..."
+    # If config_wifi_operating_country_code exists, set it to empty or global strings
+    sed -i 's/<string name="config_wifi_operating_country_code">.*<\/string>/<string name="config_wifi_operating_country_code"><\/string>/g' "$WIFI_OVERLAY"
+fi
 
 # --- ⚙️ GApps Integration Fix ---
 echo "🔗 Linking MindTheGApps to lineage_billie2.mk..."
@@ -121,7 +144,7 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 export WITH_GAPPS=true
 mkdir -p out/target/product/${DEVICE}/
 
-echo "🚀 ===== Starting Safe GApps Build with Retrofit Fixes ====="
+echo "🚀 ===== Starting Safe GApps Build with Retrofit & Wi-Fi Fixes ====="
 breakfast billie2 userdebug && \
 make installclean && \
 mka bacon
