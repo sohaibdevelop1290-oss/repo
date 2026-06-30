@@ -3,7 +3,7 @@
 # ==================================
 # 📱 LineageOS Optimized Build Script
 # 🛠️ For: billie2 (OnePlus Nord N100 - Android 13)
-# 🔒 Phase 1 - Part 2: Recovery, Partition, Wi-Fi, Camera Color & 2GB ZRAM Fixes
+# 🔒 Phase 1 - Part 2: Recovery, Partition, Wi-Fi, & Camera Color Fixes
 # 💻 Optimized for Crave.io (Incremental & Safe Protocols)
 # ==================================
 
@@ -105,49 +105,35 @@ PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
 fi
 
-# --- 🛠️ Partition, Recovery & Camera Color Fixes (BoardConfig.mk) ---
+# --- 📺 Camera Color & Video Playback Fixes (system.prop) ---
+echo "📺 Injecting Camera Color and Display Fixes into system.prop..."
+SYSTEM_PROP="device/oneplus/billie2/system.prop"
+mkdir -p $(dirname "$SYSTEM_PROP")
+cat <<EOF >> "$SYSTEM_PROP"
+
+# Phase 1 Part 2 - Camera Color & Video Playback Fixes
+vendor.display.enable_default_color_mode=1
+persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap
+ro.hardware.egl=adreno
+debug.sf.enable_hwc_vds=1
+EOF
+echo "✅ Camera color and display properties successfully added to system.prop."
+
+# --- 🛠️ Partition & Recovery Fixes (BoardConfig.mk) ---
 echo "⚙️ Injecting Board configurations..."
 BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
 if [ -f "$BOARD_CONFIG" ]; then
     # Resize dynamic partition size block to max safety limit
     sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
     
-    # Inject Recovery, Camera Color and Hardware ZRAM Drivers Configuration
+    # Inject Recovery configurations safely
     cat <<EOF >> "$BOARD_CONFIG"
 
 # Phase 1 Part 2 - Android 10 Transition Fixes
 TARGET_RECOVERY_IGNORE_TIMESTAMP := true
 BOARD_SUPPRESS_SECURE_ERASE := true
-
-# Phase 1 Part 2 - Camera Color & Video Playback Fixes
-TARGET_PRODUCT_PROP_FILES += device/oneplus/billie2/system.prop
-PRODUCT_PROPERTY_OVERRIDES += \\
-    vendor.display.enable_default_color_mode=1 \\
-    persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap \\
-    ro.hardware.egl=adreno \\
-    debug.sf.enable_hwc_vds=1
-
-# Phase 1 Part 2 - ZRAM Hardware Drivers
-BOARD_USES_PV_ZRAM := true
 EOF
-    echo "✅ Recovery, Camera Color and ZRAM architecture flags safely injected."
-fi
-
-# --- 🧠 2GB ZRAM Core Injection (fstab setup) ---
-echo "🧠 Injecting 2GB ZRAM size limit into device tree fstab..."
-FSTAB_FILE=$(find device/oneplus/billie2/ -name "fstab.*" | head -n 1)
-if [ -n "$FSTAB_FILE" ] && [ -f "$FSTAB_FILE" ]; then
-    echo "📝 Modifying fstab entry in: $FSTAB_FILE"
-    sed -i '/zram/d' "$FSTAB_FILE"
-    echo "/dev/block/zram0  none  swap  defaults  zramsize=2147483648" >> "$FSTAB_FILE"
-    echo "✅ Fstab ZRAM 2GB setup complete."
-else
-    echo "⚠️ fstab file not found, creating fallback sysprop for ZRAM size in product mk..."
-    if [ -f "$PRODUCT_MK" ]; then
-        echo "" >> "$PRODUCT_MK"
-        echo "# Fallback ZRAM configuration override" >> "$PRODUCT_MK"
-        echo "PRODUCT_PROPERTY_OVERRIDES += ro.vendor.config.zram=true" >> "$PRODUCT_MK"
-    fi
+    echo "✅ Recovery and Partition size flags safely injected into BoardConfig."
 fi
 
 # ==================================
@@ -168,7 +154,7 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 export WITH_GAPPS=true
 mkdir -p out/target/product/${DEVICE}/
 
-echo "🚀 ===== Starting Safe GApps Build with Retrofit, Wi-Fi, Camera & ZRAM Fixes ====="
+echo "🚀 ===== Starting Safe GApps Build with Retrofit, Wi-Fi, and Camera Fixes ====="
 breakfast billie2 userdebug && \
 mka bacon
 
