@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # ==================================
-# 📱 LineageOS Optimized Build Script - INSTANT SUPER_EMPTY LOCK
+# 📱 LineageOS Optimized Build Script - CLEAN COMPACT FIX
 # 🛠️ For: billie2 (OnePlus Nord N100 - Android 13)
-# 🔒 Status: 100% Fixed | Instant Zip Lock Before Crave Deletion
+# 🔒 Phase 1 - Part 2: Deep Partition Capture & Safe Cloud Protection
 # 💻 Optimized for Crave.io
 # ==================================
 
@@ -29,7 +29,7 @@ echo "🗑️ Clearing legacy device configuration paths..."
 rm -rf device/qcom/sepolicy_vndr
 
 # =====================================================================
-# 🔥 SYNC FIX: Pre-emptively removing folders to prevent Git conflict
+# 🔥 CRUCIAL SYNC FIX: Pre-emptively removing folders to prevent Git conflict
 # =====================================================================
 echo "🧹 Removing default directories before sync to avoid unsupported checkout state..."
 rm -rf device/oneplus/billie2
@@ -117,15 +117,11 @@ if [ -f "$BOARD_CONFIG" ]; then
 # Phase 1 Part 2 - Android 10 Transition Fixes
 TARGET_RECOVERY_IGNORE_TIMESTAMP := true
 BOARD_SUPPRESS_SECURE_ERASE := true
-
-# Enforce Automatic Generation of super_empty.img during compile
-BOARD_BUILD_SUPER_IMAGE_BY_DEFAULT := true
-PRODUCT_BUILD_SUPER_PARTITION := true
 EOF
 fi
 
 # ==================================
-# 🧱 Build Execution & INSTANT ZIP LOCK
+# 🧱 Build Execution & DEEP INSTANT LOCK
 # ==================================
 echo "🔧 Setting up build environment setup..."
 . build/envsetup.sh
@@ -138,13 +134,13 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 export WITH_GAPPS=true
 mkdir -p out/target/product/${DEVICE}/
 
-# 🔥 کریش پروف لاجک: بلڈ ختم ہوتے ہی، اگلے ہی ملی سیکنڈ میں 'super_empty.img' کو زپ کر دیا جائے گا
-echo "🚀 ===== Starting GApps Build with Instant Super Empty Image Protection ====="
+# 🔥 فکس: بلڈ ختم ہوتے ہی تصویر "Screenshot 2026-07-01 165623.png" والے اندرونی راستے سے امیج کو نکال کر باہر زپ کرنا
+echo "🚀 ===== Starting GApps Build with Target Files Search Lock ====="
 breakfast billie2 userdebug && \
 mka bacon && \
-zip -j out/target/product/${DEVICE}/super_empty_protected.zip out/target/product/${DEVICE}/super_empty.img
+find out/target/product/${DEVICE}/obj/PACKAGING/ -name "super_empty.img" -exec zip -j out/target/product/${DEVICE}/super_empty_protected.zip {} \;
 
-echo "🎉 ===== All builds and instant protections completed successfully! ====="
+echo "🎉 ===== All builds and deep protections completed successfully! ====="
 
 # ==================================
 # 📦 Post-Build Artifact Handling
@@ -156,7 +152,6 @@ NOW=$(date +"%Y%m%d-%H%M")
 FLASHABLE_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage-20.0-*.zip" | grep -v "ota" | tail -n 1)
 OTA_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage_billie2-ota-*.zip" | tail -n 1)
 
-# بلڈ کے فوراً بعد بنی ہوئی پروٹیکٹڈ زپ فائل کو تلاش کرنا
 PROTECTED_SUPER_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "super_empty_protected.zip" | tail -n 1)
 
 if [ -f "$PROTECTED_SUPER_ZIP" ]; then
