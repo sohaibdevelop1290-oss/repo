@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==================================
-# 📱 LineageOS Optimized Build Script - CLEAN COMPACT FIX
+# 📱 LineageOS Optimized Build Script - PROPS SPLIT EDITION
 # 🛠️ For: billie2 (OnePlus Nord N100 - Android 13)
 # 🔒 Phase 1 - Part 2: Deep Partition Capture & Safe Cloud Protection
 # 💻 Optimized for Crave.io
@@ -97,14 +97,23 @@ PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
 fi
 
-# --- 📺 Camera Color & Video Playback Fixes (system.prop) ---
+# --- 📺 Camera Color, Display & Video Playback Fixes (Props Split Fixed) ---
+echo "📺 Injecting target properties into system.prop and vendor_prop layers..."
 SYSTEM_PROP="device/oneplus/billie2/system.prop"
+VENDOR_PROP="device/oneplus/billie2/vendor_prop"
+
+# 1. Pure system-level properties
 mkdir -p $(dirname "$SYSTEM_PROP")
 cat <<EOF >> "$SYSTEM_PROP"
-vendor.display.enable_default_color_mode=1
-persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap
 ro.hardware.egl=adreno
 debug.sf.enable_hwc_vds=1
+EOF
+
+# 2. Pure vendor-level properties
+mkdir -p $(dirname "$VENDOR_PROP")
+cat <<EOF >> "$VENDOR_PROP"
+vendor.display.enable_default_color_mode=1
+persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap
 EOF
 
 # --- 🛠️ Partition & Recovery Fixes (BoardConfig.mk) ---
@@ -134,7 +143,7 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 export WITH_GAPPS=true
 mkdir -p out/target/product/${DEVICE}/
 
-# 🔥 فکس: بلڈ ختم ہوتے ہی تصویر "Screenshot 2026-07-01 165623.png" والے اندرونی راستے سے امیج کو نکال کر باہر زپ کرنا
+# 🔥 فکس: بلڈ ختم ہوتے ہی لاگ (Screenshot 2026-07-01 165623.png) والے اندرونی راستے سے امیج کو نکال کر فوراً زپ کرنا
 echo "🚀 ===== Starting GApps Build with Target Files Search Lock ====="
 breakfast billie2 userdebug && \
 mka bacon && \
