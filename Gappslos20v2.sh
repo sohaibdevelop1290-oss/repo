@@ -1,72 +1,83 @@
 #!/bin/bash
 
-# ==================================
-# 📱 LineageOS Optimized Build Script - PROPS SPLIT EDITION
-# 🛠️ For: billie2 (OnePlus Nord N100 - Android 13)
-# 🔒 Phase 1 - Part 2: Deep Partition Capture & Safe Cloud Protection
-# 💻 Optimized for Crave.io
-# ==================================
+# =====================================================================
+# 📱 LineageOS Optimized Build Script - PROFESSIONAL PRODUCTION EDITION
+# =====================================================================
+# ⚙️ Target Device: OnePlus Nord N100 (billie2)
+# 🔒 Build Phase: Android 13 (LineageOS 20.0) Stable Phase
+# 💻 Environment: Cloud Optimized for Crave.io Workspace
+# 👤 Maintainer: Sohaib
+# =====================================================================
 
-# Setup device variables early
+# ---------------------------------------------------------------------
+# 1. ENVIRONMENT CONFIGURATION & GLOBAL VARIABLES
+# ---------------------------------------------------------------------
+echo "⚙️ Configuring build environment parameters..."
 export DEVICE="billie2"
 export BUILD_USERNAME="sohaib"
 export BUILD_HOSTNAME="crave"
 export SKIP_ABI_CHECKS=true
+export WITH_GAPPS=true
 
-# --- 🧹 Smart Cache Setup (Only targets current flashable outputs) ---
-echo "🧹 Safely clearing target directory artifacts to save space..."
+# Create output structure preemptively
+mkdir -p out/target/product/${DEVICE}/
+
+# ---------------------------------------------------------------------
+# 2. PRE-SYNC WORKSPACE PURGE & CLEANUP
+# ---------------------------------------------------------------------
+echo "🧹 Safely purging active target directory artifacts to secure disk space..."
 rm -rf out/target/product/${DEVICE}/*.zip
 rm -rf out/target/product/${DEVICE}/*.img
 
-# --- 🧹 Safe Local Manifest Cleanup ---
-echo "🧹 Removing old manifests..."
+echo "🧹 Clearing legacy manifest files and lock mechanisms..."
 rm -rf .repo/local_manifests
 rm -rf .repo/manifests
 rm -rf .repo/manifest.xml
 
-# --- 🗑️ Safe Device Settings Reset ---
-echo "🗑️ Clearing legacy device configuration paths..."
+echo "🗑️ Dropping legacy target security policy definitions..."
 rm -rf device/qcom/sepolicy_vndr
 
-# =====================================================================
-# 🔥 CRUCIAL SYNC FIX: Pre-emptively removing folders to prevent Git conflict
-# =====================================================================
-echo "🧹 Removing default directories before sync to avoid unsupported checkout state..."
+echo "🔥 [CRUCIAL] Clearing target repository source trees to block Git checkout failures..."
 rm -rf device/oneplus/billie2
 rm -rf vendor/oneplus/billie2
 rm -rf kernel/oneplus/sm4250
 rm -rf hardware/oneplus
 
-# --- ⚙️ Init ROM repo ---
-echo "⚙️ Initializing LineageOS source tree..."
+# ---------------------------------------------------------------------
+# 3. SOURCE TREE INITIALIZATION & MANIFEST SYNCHRONIZATION
+# ---------------------------------------------------------------------
+echo "⚙️ Initializing upstream LineageOS Android platform source tree..."
 repo init --depth=1 -u https://github.com/LineageOS/android.git -b lineage-20.0 --git-lfs
 
-# --- ⚡ Safe Crave Sync ---
-echo "⚡ Synchronizing remote source repositories using Crave protocol..."
+echo "⚡ Executing high-speed safe workspace synchronization via Crave fabric..."
 /opt/crave/resync.sh
 
-# --- 📂 Clone Device, Vendor, Kernel & Hardware Trees ---
-echo "📂 Fetching device configuration tree..."
+# ---------------------------------------------------------------------
+# 4. REMOTE TREES CLONING & DEPENDENCY MANAGEMENT
+# ---------------------------------------------------------------------
+echo "📂 Fetching device tree configuration..."
 git clone https://github.com/LineageOS/android_device_oneplus_billie2 -b lineage-20 device/oneplus/billie2
 
-echo "📂 Fetching proprietary vendor blobs..."
+echo "📂 Fetching proprietary vendor blob repositories..."
 git clone https://github.com/sohaibdevelop1290-oss/proprietary_vendor_oneplus_billie2 -b lineage-20 vendor/oneplus/billie2
 
-echo "📂 Fetching source kernel tree..."
+echo "📂 Fetching target platform Linux kernel architecture tree..."
 git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-20 kernel/oneplus/sm4250
 
-echo "📂 Fetching hardware dependency layers..."
+echo "📂 Fetching vendor hardware implementation layers..."
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 hardware/oneplus
 
-echo "📂 Fetching target platform security configurations..."
+echo "📂 Fetching legacy Qualcomm platform security policy structures..."
 git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
 
-echo "📂 Fetching MindTheGApps packages..."
+echo "📂 Fetching structural MindTheGApps core packages..."
 rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b sigma vendor/gapps
 
-# --- 📶 Wi-Fi PTCL & Region Fix (Channel 12/13 Enable) ---
-echo "📶 Injecting Wi-Fi regional fixes for PTCL & hidden routers..."
+# ---------------------------------------------------------------------
+# 5. HARDWARE FIXES & REGIONAL INJECTIONS (WI-FI & DISP / CAM)
+# ---------------------------------------------------------------------
+echo "📶 Injecting hardware Wi-Fi channel rules for PTCL and Global compliance..."
 WIFI_INI=$(find device/oneplus/billie2/ vendor/oneplus/billie2/ -name "WCNSS_qcom_cfg.ini" | head -n 1)
 if [ -n "$WIFI_INI" ] && [ -f "$WIFI_INI" ]; then
     sed -i 's/gCrpCc=.*/gCrpCc=00/g' "$WIFI_INI" 2>/dev/null || echo "gCrpCc=00" >> "$WIFI_INI"
@@ -79,16 +90,33 @@ if [ -f "$WIFI_OVERLAY" ]; then
     sed -i 's/<string name="config_wifi_operating_country_code">.*<\/string>/<string name="config_wifi_operating_country_code"><\/string>/g' "$WIFI_OVERLAY"
 fi
 
-# --- ⚙️ GApps Integration (lineage_billie2.mk) ---
-echo "🔗 Linking MindTheGApps to lineage_billie2.mk..."
+echo "📺 Distributing custom system and hardware properties across execution layers..."
+SYSTEM_PROP="device/oneplus/billie2/system.prop"
+VENDOR_PROP="device/oneplus/billie2/vendor_prop"
+
+# Appending System Display and Core EGL Properties
+mkdir -p $(dirname "$SYSTEM_PROP")
+cat <<EOF >> "$SYSTEM_PROP"
+ro.hardware.egl=adreno
+debug.sf.enable_hwc_vds=1
+EOF
+
+# Appending Vendor Camera and Color Space Profiles
+mkdir -p $(dirname "$VENDOR_PROP")
+cat <<EOF >> "$VENDOR_PROP"
+vendor.display.enable_default_color_mode=1
+persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap
+EOF
+
+# ---------------------------------------------------------------------
+# 6. GAPPS ARCHITECTURE LINKING & LITE APP FILTERING
+# ---------------------------------------------------------------------
+echo "🔗 Structuring MindTheGApps linkage inside product design maps..."
 PRODUCT_MK="device/oneplus/billie2/lineage_billie2.mk"
 if [ -f "$PRODUCT_MK" ]; then
-    echo "" >> "$PRODUCT_MK"
-    echo "# Include GApps configuration layers" >> "$PRODUCT_MK"
-    echo '$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)' >> "$PRODUCT_MK"
+    echo -e "\n# Include GApps configuration layers\n\$(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)" >> "$PRODUCT_MK"
 fi
 
-# --- ⚙️ Custom App Exclusion (Lite GApps Enforcer) ---
 GAPPS_CONFIG="vendor/gapps/config.mk"
 if [ -f "$GAPPS_CONFIG" ]; then
     cat <<EOF >> "$GAPPS_CONFIG"
@@ -97,26 +125,10 @@ PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
 EOF
 fi
 
-# --- 📺 Camera Color, Display & Video Playback Fixes (Props Split Fixed) ---
-echo "📺 Injecting target properties into system.prop and vendor_prop layers..."
-SYSTEM_PROP="device/oneplus/billie2/system.prop"
-VENDOR_PROP="device/oneplus/billie2/vendor_prop"
-
-# 1. Pure system-level properties
-mkdir -p $(dirname "$SYSTEM_PROP")
-cat <<EOF >> "$SYSTEM_PROP"
-ro.hardware.egl=adreno
-debug.sf.enable_hwc_vds=1
-EOF
-
-# 2. Pure vendor-level properties
-mkdir -p $(dirname "$VENDOR_PROP")
-cat <<EOF >> "$VENDOR_PROP"
-vendor.display.enable_default_color_mode=1
-persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap
-EOF
-
-# --- 🛠️ Partition & Recovery Fixes (BoardConfig.mk) ---
+# ---------------------------------------------------------------------
+# 7. PARTITION & BACKPORT TRANSITION RULE SETS
+# ---------------------------------------------------------------------
+echo "🛠️ Hardcoding custom storage sizing and partition translation definitions..."
 BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
 if [ -f "$BOARD_CONFIG" ]; then
     sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
@@ -129,47 +141,63 @@ BOARD_SUPPRESS_SECURE_ERASE := true
 EOF
 fi
 
-# ==================================
-# 🧱 Build Execution & DEEP INSTANT LOCK
-# ==================================
-echo "🔧 Setting up build environment setup..."
+# ---------------------------------------------------------------------
+# 8. COMPILATION INITIATION & DEEP TARGET IMAGE ARREST
+# ---------------------------------------------------------------------
+echo "🔧 Setting up cross-compilation toolchain and environment variables..."
 . build/envsetup.sh
 
+# Fixing modern Ubuntu legacy dependency missing issues seamlessly
 mkdir -p $HOME/.local/lib
 ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 $HOME/.local/lib/libncurses.so.5
 ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 $HOME/.local/lib/libtinfo.so.5
 export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 
-export WITH_GAPPS=true
-mkdir -p out/target/product/${DEVICE}/
+echo "🚀 Starting full target production build (mka bacon)..."
+breakfast billie2 userdebug && mka bacon
 
-# 🔥 فکس: بلڈ ختم ہوتے ہی لاگ (Screenshot 2026-07-01 165623.png) والے اندرونی راستے سے امیج کو نکال کر فوراً زپ کرنا
-echo "🚀 ===== Starting GApps Build with Target Files Search Lock ====="
-breakfast billie2 userdebug && \
-mka bacon && \
-find out/target/product/${DEVICE}/obj/PACKAGING/ -name "super_empty.img" -exec zip -j out/target/product/${DEVICE}/super_empty_protected.zip {} \;
-
-echo "🎉 ===== All builds and deep protections completed successfully! ====="
-
-# ==================================
-# 📦 Post-Build Artifact Handling
-# ==================================
-echo "📍 Processing build output artifacts..."
+# ---------------------------------------------------------------------
+# 9. INSTANT IMAGE ARREST BLOCK (Saves super_empty.img from Auto-Deletion)
+# ---------------------------------------------------------------------
+echo "🔒 Triggering immediate target file inspection and capture..."
 ROM_DIR="out/target/product/${DEVICE}"
+
+# Locating and wrapping the build intermediate super_empty.img into a safe ZIP archive instantly
+find "${ROM_DIR}/obj/PACKAGING/" -name "super_empty.img" -exec zip -j "${ROM_DIR}/super_empty_protected.zip" {} \;
+
+if [ -f "${ROM_DIR}/super_empty_protected.zip" ]; then
+    echo "✅ Success: super_empty.img captured and locked before Crave storage flush!"
+else
+    echo "⚠️ Warning: super_empty.img could not be intercepted inside intermediate files."
+fi
+
+# ---------------------------------------------------------------------
+# 10. POST-BUILD ARTIFACT PROCESSING & SECURE CLOUD EXPORT
+# ---------------------------------------------------------------------
+echo "📍 Processing finalized flashable artifacts..."
 NOW=$(date +"%Y%m%d-%H%M")
 
 FLASHABLE_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage-20.0-*.zip" | grep -v "ota" | tail -n 1)
 OTA_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage_billie2-ota-*.zip" | tail -n 1)
+PROTECTED_SUPER_ZIP="${ROM_DIR}/super_empty_protected.zip"
 
-PROTECTED_SUPER_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "super_empty_protected.zip" | tail -n 1)
-
+# Appending execution timestamp to outputs
 if [ -f "$PROTECTED_SUPER_ZIP" ]; then
-    NEW_SUPER_ZIP="$ROM_DIR/super_empty_protected-${NOW}.zip"
-    mv "$PROTECTED_SUPER_ZIP" "$NEW_SUPER_ZIP"
-    PROTECTED_SUPER_ZIP="$NEW_SUPER_ZIP"
+    mv "$PROTECTED_SUPER_ZIP" "$ROM_DIR/super_empty_protected-${NOW}.zip"
+    PROTECTED_SUPER_ZIP="$ROM_DIR/super_empty_protected-${NOW}.zip"
 fi
 
-# --- ☁️ Smart Dual Upload Implementations ---
+if [ -f "$FLASHABLE_ZIP" ]; then
+    mv "$FLASHABLE_ZIP" "${FLASHABLE_ZIP%.zip}-${NOW}.zip"
+    FINAL_ROM_ZIP="${FLASHABLE_ZIP%.zip}-${NOW}.zip"
+fi
+
+if [ -f "$OTA_ZIP" ]; then
+    mv "$OTA_ZIP" "${OTA_ZIP%.zip}-${NOW}.zip"
+    FINAL_OTA_ZIP="${OTA_ZIP%.zip}-${NOW}.zip"
+fi
+
+# 🏢 PROFESSIONAL CLOUD UPLOAD CONTROLLERS
 upload_to_gofile() {
     local file_path="$1"
     if [ -f "$file_path" ]; then
@@ -177,7 +205,7 @@ upload_to_gofile() {
         if [ -n "$server" ]; then
             local response=$(curl -s -F "file=@$file_path" "https://${server}.gofile.io/uploadFile")
             local download_page=$(echo "$response" | sed -n 's/.*"downloadPage":"\([^"]*\)".*/\1/p')
-            [ -n "$download_page" ] && echo "✅ Gofile Link: $download_page"
+            [ -n "$download_page" ] && echo "🌐 [GOFILE] Link: $download_page"
         fi
     fi
 }
@@ -187,31 +215,27 @@ upload_to_pixeldrain() {
     if [ -f "$file_path" ]; then
         local response=$(curl -s -F "file=@$file_path" https://pixeldrain.com/api/file)
         local file_id=$(echo "$response" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')
-        [ -n "$file_id" ] && echo "✅ Pixeldrain Link: https://pixeldrain.com/u/$file_id"
+        [ -n "$file_id" ] && echo "🌐 [PIXELDRAIN] Link: https://pixeldrain.com/u/$file_id"
     fi
 }
 
-# --- Trigger Upload Actions ---
-if [ -f "$FLASHABLE_ZIP" ]; then
-    NEW_FLASHABLE="${FLASHABLE_ZIP%.zip}-${NOW}.zip"
-    mv "$FLASHABLE_ZIP" "$NEW_FLASHABLE"
-    echo "📦 ROM Zip: $NEW_FLASHABLE"
-    upload_to_gofile "$NEW_FLASHABLE"
-    upload_to_pixeldrain "$NEW_FLASHABLE"
+# Execution of Exports
+if [ -f "$FINAL_ROM_ZIP" ]; then
+    echo "📦 Exporting Flashable ROM Package..."
+    upload_to_gofile "$FINAL_ROM_ZIP"
+    upload_to_pixeldrain "$FINAL_ROM_ZIP"
 fi
 
-if [ -f "$OTA_ZIP" ]; then
-    NEW_OTA="${OTA_ZIP%.zip}-${NOW}.zip"
-    mv "$OTA_ZIP" "$NEW_OTA"
-    echo "📦 OTA Zip: $NEW_OTA"
-    upload_to_gofile "$NEW_OTA"
-    upload_to_pixeldrain "$NEW_OTA"
+if [ -f "$FINAL_OTA_ZIP" ]; then
+    echo "📦 Exporting OTA Update Package..."
+    upload_to_gofile "$FINAL_OTA_ZIP"
+    upload_to_pixeldrain "$FINAL_OTA_ZIP"
 fi
 
 if [ -f "$PROTECTED_SUPER_ZIP" ]; then
-    echo "📦 Uploading Protected Super Empty Archive..."
+    echo "📦 Exporting Intercepted Super Empty Image Archive..."
     upload_to_gofile "$PROTECTED_SUPER_ZIP"
     upload_to_pixeldrain "$PROTECTED_SUPER_ZIP"
 fi
 
-echo "🏁 Phase 1 Part 2 Build script execution completed safely!"
+echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
