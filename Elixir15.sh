@@ -47,8 +47,11 @@ rm -rf device/qcom/sepolicy_vndr
 echo "⚙️ Initializing upstream Project Elixir Android 15 manifest..."
 repo init --depth=1 -u https://github.com/Project-Elixir/manifest.git -b UNO --git-lfs
 
-echo "⚡ Executing manual high-speed resync via Elixir Official parameters..."
-# یہاں مینیول آفیشل ری سنک کمانڈ ایڈ کر دی گئی ہے
+echo "⚡ Executing dual-sync mechanism (Crave Fabric + Manual Backup)..."
+# کمانڈ 1: کریوز کی اپنی آفیشل ریسنک اسکرپٹ
+/opt/crave/resync.sh
+
+# کمانڈ 2: مینیول فورس سنک (بیک اپ پروٹیکشن)
 repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
 
 # ---------------------------------------------------------------------
