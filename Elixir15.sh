@@ -47,14 +47,14 @@ rm -rf device/qcom/sepolicy_vndr
 echo "⚙️ Initializing upstream Project Elixir Android 15 manifest..."
 repo init --depth=1 -u https://github.com/Project-Elixir/manifest.git -b UNO --git-lfs
 
-echo "⚡ Executing high-speed sync via Crave fabric..."
-/opt/crave/resync.sh
+echo "⚡ Executing manual high-speed resync via Elixir Official parameters..."
+# یہاں مینیول آفیشل ری سنک کمانڈ ایڈ کر دی گئی ہے
+repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
 
 # ---------------------------------------------------------------------
 # 4. FETCHING CUSTOM PRODUCTION TREES
 # ---------------------------------------------------------------------
 echo "📂 Cloning manually modified Project Elixir device tree..."
-# برانچ کو بدل کر -b elixir15 کر دیا گیا ہے
 git clone https://github.com/sohaibdevelop1290-oss/android_device_oneplus_billie2.git -b elixir15 device/oneplus/billie2
 
 echo "📂 Cloning vendor blobs (Lineage 22.1) repository..."
