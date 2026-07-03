@@ -74,7 +74,7 @@ echo "📂 Fetching legacy Qualcomm platform security policy structures..."
 git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
 
 # ---------------------------------------------------------------------
-# 5. HARDWARE FIXES & REGIONAL INJECTIONS (WI-FI, CAMERA & FINGERPRINT)
+# 5. HARDWARE FIXES & REGIONAL INJECTIONS (WI-FI & CAMERA)
 # ---------------------------------------------------------------------
 echo "📶 Injecting hardware Wi-Fi channel rules for PTCL and Global compliance..."
 WIFI_INI=$(find device/oneplus/billie2/ vendor/oneplus/billie2/ -name "WCNSS_qcom_cfg.ini" | head -n 1)
@@ -89,7 +89,7 @@ if [ -f "$WIFI_OVERLAY" ]; then
     sed -i 's/<string name="config_wifi_operating_country_code">.*<\/string>/<string name="config_wifi_operating_country_code"><\/string>/g' "$WIFI_OVERLAY"
 fi
 
-echo "📺 Distributing fixed Fingerprint and Camera profiles across execution layers..."
+echo "📺 Distributing fixed Camera profiles across execution layers..."
 SYSTEM_PROP="device/oneplus/billie2/system.prop"
 VENDOR_PROP="device/oneplus/billie2/vendor_prop"
 
@@ -104,13 +104,8 @@ debug.sf.enable_hwc_vds=1
 media.stagefright.thumbnail.prefer_hw_codecs=true
 EOF
 
-# 🛠️ HARDWARE DEEP FIX: Fingerprint Missing & Camera Dead Fixes
+# 🛠️ HARDWARE DEEP FIX: Camera Dead Fixes
 cat <<EOF >> "$VENDOR_PROP"
-# Fingerprint HAL Force Load
-ro.hardware.fingerprint=goodix
-persist.vendor.qcom.fp.wakeup=1
-ro.vendor.undisplayed_fingerprint=true
-
 # Camera Sensor & Provider Permissions Fix
 vendor.camera.aux.packagelist=com.android.camera,org.lineageos.snap,org.codeaurora.snapcam
 persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap,org.codeaurora.snapcam
