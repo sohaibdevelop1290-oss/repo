@@ -28,8 +28,8 @@ mkdir -p ${ROM_DIR}
 # 2. PRE-SYNC WORKSPACE PURGE & CLEANUP
 # ---------------------------------------------------------------------
 echo "🧹 Safely removing old zip and image artifacts..."
-rm -rf ${ROM_DIR}/*.zip
-rm -rf ${ROM_DIR}/*.img
+rm -rf out/target/product/${DEVICE}/*.zip
+rm -rf out/target/product/${DEVICE}/*.img
 rm -rf .repo/local_manifests .repo/manifests .repo/manifest.xml
 
 echo "🔥 Purging older device trees to prevent git conflicts..."
