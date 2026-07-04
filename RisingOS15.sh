@@ -38,7 +38,6 @@ rm -rf vendor/oneplus/billie2
 rm -rf kernel/oneplus/sm4250
 rm -rf hardware/oneplus
 rm -rf device/qcom/sepolicy_vndr
-rm -rf external/chromium-webview
 
 # ---------------------------------------------------------------------
 # 3. RISINGOS SOURCE INITIALIZATION & SYNCHRONIZATION
