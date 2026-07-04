@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # =====================================================================
-# 📱 Project Elixir (Android 14) Production Script
+# 📱 Project Elixir (Android 13 - Tiramisu) Production Script
 # =====================================================================
 # ⚙️ Target Device: OnePlus Nord N100 (billie2)
-# 🔄 Base Source: Pre-Modified Manual Trees for Project Elixir A14 (Pure AOSP)
+# 🔄 Base Source: Pre-Modified Manual Trees for Project Elixir A13 (Pure AOSP)
 # 💻 Environment: Cloud Optimized for Crave.io Workspace (No Clean)
 # 👤 Maintainer: Sohaib
 # =====================================================================
@@ -12,9 +12,10 @@
 # ---------------------------------------------------------------------
 # 1. ENVIRONMENT CONFIGURATION & GLOBAL VARIABLES
 # ---------------------------------------------------------------------
-echo "⚙️ Setting up Project Elixir Android 15 environment parameters..."
+echo "⚙️ Setting up Project Elixir Android 13 environment parameters..."
 export DEVICE="billie2"
 export SKIP_ABI_CHECKS=true
+export ROM_DIR=$(pwd) # Defines current working directory for safe asset output
 
 # Force UTF-8 encoding for terminal compatibility
 export LANG=C.UTF-8
@@ -22,6 +23,7 @@ export LC_ALL=C.UTF-8
 
 # Pre-create the output directory structure
 mkdir -p out/target/product/${DEVICE}/
+
 # ---------------------------------------------------------------------
 # 2. PRE-SYNC WORKSPACE PURGE & CLEANUP
 # ---------------------------------------------------------------------
@@ -36,39 +38,39 @@ rm -rf vendor/oneplus/billie2
 rm -rf kernel/oneplus/sm4250
 rm -rf hardware/oneplus
 rm -rf device/qcom/sepolicy_vndr
-rm -rf external/chromium-webview
+# Removed chromium-webview purge as requested ✅
 
 # ---------------------------------------------------------------------
 # 3. PROJECT ELIXIR SOURCE INITIALIZATION & SYNCHRONIZATION
 # ---------------------------------------------------------------------
-echo "⚙️ Initializing upstream Project Elixir Android 14 manifest..."
-repo init --depth=1 -u https://github.com/Project-Elixir/manifest.git -b UNO --git-lfs
+echo "⚙️ Initializing upstream Project Elixir Android 13 (Tiramisu) manifest..."
+repo init --depth=1 -u https://github.com/Project-Elixir/manifest.git -b tiramisu --git-lfs
 
 echo "⚡ Executing dual-sync mechanism (Crave Fabric + Manual Backup)..."
 /opt/crave/resync.sh
-repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune --force-broken -j$(nproc --all)
+repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
 # ---------------------------------------------------------------------
 # 4. FETCHING CUSTOM PRODUCTION TREES
 # ---------------------------------------------------------------------
 echo "📂 Cloning manually modified Project Elixir device tree..."
-git clone https://github.com/sohaibdevelop1290-oss/android_device_oneplus_billie2.git -b elixir14 device/oneplus/billie2
+git clone https://github.com/sohaibdevelop1290-oss/android_device_oneplus_billie2.git -b elixir13 device/oneplus/billie2
 
-echo "📂 Cloning vendor blobs (Lineage 22.1) repository..."
-git clone https://github.com/sohaibdevelop1290-oss/proprietary_vendor_oneplus_billie2 -b lineage-21 vendor/oneplus/billie2
+echo "📂 Cloning vendor blobs (Lineage 20) repository..."
+git clone https://github.com/sohaibdevelop1290-oss/proprietary_vendor_oneplus_billie2 -b lineage-20 vendor/oneplus/billie2
 
 echo "📂 Cloning Linux kernel 4.19 architecture tree..."
-git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-21 kernel/oneplus/sm4250
+git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-20 kernel/oneplus/sm4250
 
 echo "📂 Cloning hardware implementation layers..."
-git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-21 hardware/oneplus
+git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 hardware/oneplus
 
 echo "📂 Fetching Qualcomm legacy sepolicy structures..."
 rm -rf device/qcom/sepolicy_vndr
-git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-21-legacy-um device/qcom/sepolicy_vndr
+git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
 
 # ---------------------------------------------------------------------
-# 5. COMPILATION INITIATION (Android 14 Fix Execution)
+# 5. COMPILATION INITIATION (Android 13 Pure AOSP Target)
 # ---------------------------------------------------------------------
 echo "🔧 Setting up build environment..."
 . build/envsetup.sh
@@ -82,7 +84,7 @@ lunch aosp_billie2-userdebug
 echo "🧹 Running 'make installclean' to safely wipe old cross-source targets..."
 make installclean
 
-echo "🧱 Starting Project Elixir Android 15 production compilation..."
+echo "🧱 Starting Project Elixir Android 13 production compilation..."
 mka bacon -jX
 
 # ---------------------------------------------------------------------
@@ -90,11 +92,11 @@ mka bacon -jX
 # ---------------------------------------------------------------------
 echo "🔒 Triggering immediate target file inspection and capture..."
 
-TARGET_IMG=$(find "${ROM_DIR}/obj/PACKAGING/" -name "super_empty.img" | head -n 1)
+TARGET_IMG=$(find "${ROM_DIR}/out/target/product/${DEVICE}/obj/PACKAGING/" -name "super_empty.img" | head -n 1)
 
 if [ -n "$TARGET_IMG" ] && [ -f "$TARGET_IMG" ]; then
     echo "📦 Found super_empty.img. Converting to zip archive automatically..."
-    zip -j "${ROM_DIR}/super_empty_protected.zip" "$TARGET_IMG"
+    zip -j "${ROM_DIR}/out/target/product/${DEVICE}/super_empty_protected.zip" "$TARGET_IMG"
     echo "✅ Success: super_empty.img converted and locked before Crave storage flush!"
 else
     echo "⚠️ Warning: super_empty.img could not be located in intermediate files."
@@ -106,23 +108,25 @@ fi
 echo "📍 Processing finalized flashable artifacts..."
 NOW=$(date +"%Y%m%d-%H%M")
 
-FLASHABLE_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "ProjectElixir_*.zip" -o -name "projectelixir_*.zip" -o -name "lineage_*.zip" -o -name "aosp_*.zip" | grep -v "ota" | tail -n 1)
-OTA_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage_billie2-ota-*.zip" -o -name "ProjectElixir_billie2-ota-*.zip" | tail -n 1)
-PROTECTED_SUPER_ZIP="$ROM_DIR/super_empty_protected.zip"
+cd out/target/product/${DEVICE}/
+
+FLASHABLE_ZIP=$(find . -maxdepth 1 -name "ProjectElixir_*.zip" -o -name "projectelixir_*.zip" -o -name "aosp_*.zip" | grep -v "ota" | tail -n 1)
+OTA_ZIP=$(find . -maxdepth 1 -name "ProjectElixir_*-ota-*.zip" -o -name "aosp_*-ota-*.zip" | tail -n 1)
+PROTECTED_SUPER_ZIP="./super_empty_protected.zip"
 
 if [ -f "$PROTECTED_SUPER_ZIP" ]; then
-    mv "$PROTECTED_SUPER_ZIP" "$ROM_DIR/super_empty_protected-${NOW}.zip"
-    PROTECTED_SUPER_ZIP="$ROM_DIR/super_empty_protected-${NOW}.zip"
+    mv "$PROTECTED_SUPER_ZIP" "./super_empty_protected-${NOW}.zip"
+    FINAL_SUPER_ZIP="$(pwd)/super_empty_protected-${NOW}.zip"
 fi
 
 if [ -f "$FLASHABLE_ZIP" ]; then
     mv "$FLASHABLE_ZIP" "${FLASHABLE_ZIP%.zip}-${NOW}.zip"
-    FINAL_ROM_ZIP="${FLASHABLE_ZIP%.zip}-${NOW}.zip"
+    FINAL_ROM_ZIP="$(pwd)/${FLASHABLE_ZIP%.zip}-${NOW}.zip"
 fi
 
 if [ -f "$OTA_ZIP" ]; then
     mv "$OTA_ZIP" "${OTA_ZIP%.zip}-${NOW}.zip"
-    FINAL_OTA_ZIP="${OTA_ZIP%.zip}-${NOW}.zip"
+    FINAL_OTA_ZIP="$(pwd)/${OTA_ZIP%.zip}-${NOW}.zip"
 fi
 
 # 🏢 PROFESSIONAL CLOUD UPLOAD CONTROLLERS
@@ -148,9 +152,9 @@ if [ -f "$FINAL_OTA_ZIP" ]; then
     upload_to_gofile "$FINAL_OTA_ZIP"
 fi
 
-if [ -f "$PROTECTED_SUPER_ZIP" ]; then
+if [ -f "$FINAL_SUPER_ZIP" ]; then
     echo "📦 Exporting Intercepted Super Empty Image Archive..."
-    upload_to_gofile "$PROTECTED_SUPER_ZIP"
+    upload_to_gofile "$FINAL_SUPER_ZIP"
 fi
 
 echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
