@@ -21,9 +21,7 @@ export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 
 # Pre-create the output directory structure
-export ROM_DIR="out/target/product/${DEVICE}"
-mkdir -p ${ROM_DIR}
-
+mkdir -p out/target/product/${DEVICE}/
 # ---------------------------------------------------------------------
 # 2. PRE-SYNC WORKSPACE PURGE & CLEANUP
 # ---------------------------------------------------------------------
