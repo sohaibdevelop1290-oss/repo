@@ -78,6 +78,10 @@ echo "🔧 Setting up build environment..."
 echo "🚀 Selecting target via official riseup build platform configuration..."
 riseup billie2 userdebug
 
+# 🛠️ Fix for Duplicate SystemUIClocks-BigNum Conflict
+echo "🧹 Resolving SystemUIClocks duplicate definition conflict..."
+rm -rf vendor/addons/themes/SystemUIClocks
+
 # ---------------------------------------------------------------------
 # 6. SAFE CONFLICT RESOLUTION (CRAVE-APPROVED)
 # ---------------------------------------------------------------------
