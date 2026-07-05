@@ -78,9 +78,10 @@ echo "🔧 Setting up build environment..."
 echo "🚀 Selecting target via official riseup build platform configuration..."
 riseup billie2 userdebug
 
-# 🛠️ Fix for Duplicate SystemUIClocks-BigNum Conflict
-echo "🧹 Resolving SystemUIClocks duplicate definition conflict..."
-rm -rf vendor/addons/themes/SystemUIClocks
+# 🛠️ GMS Clocks Removal to keep RisingOS Stock SystemUI Clocks
+echo "🧹 Removing GMS SystemUIClocks to use RisingOS stock clocks..."
+rm -rf vendor/gms/common/packages/apps/SystemUIClocks
+
 
 # ---------------------------------------------------------------------
 # 6. SAFE CONFLICT RESOLUTION (CRAVE-APPROVED)
