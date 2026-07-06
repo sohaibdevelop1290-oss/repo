@@ -78,10 +78,10 @@ echo "🔧 Setting up build environment..."
 echo "🚀 Selecting target via official riseup build platform configuration..."
 riseup billie2 userdebug
 
-# 🛠️ GMS Clocks Removal to keep RisingOS Stock SystemUI Clocks
-echo "🧹 Removing GMS SystemUIClocks to use RisingOS stock clocks..."
-rm -rf vendor/gms/common/packages/apps/SystemUIClocks
-
+# 🛠️ آپ کا کسٹم فورک ریپلیسمنٹ کوڈ یہاں آئے گا:
+echo "🚀 Replacing GMS vendor with personal forked repository..."
+rm -rf vendor/gms
+git clone https://gitlab.com/sohaibdevelop1290/android_vendor_gms.git -b fifteen vendor/gms
 
 # ---------------------------------------------------------------------
 # 6. SAFE CONFLICT RESOLUTION (CRAVE-APPROVED)
