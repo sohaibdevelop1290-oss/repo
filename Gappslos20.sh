@@ -60,7 +60,7 @@ echo "⚡ Executing high-speed safe workspace synchronization via Crave fabric..
 # 4. REMOTE TREES CLONING & DEPENDENCY MANAGEMENT
 # ---------------------------------------------------------------------
 echo "📂 Fetching device tree configuration..."
-git clone https://github.com/LineageOS/android_device_oneplus_billie2 -b lineage-20 device/oneplus/billie2
+git clone https://github.com/LineageOS/android_device_oneplus_billie2 -b Glineage-20 device/oneplus/billie2
 
 echo "📂 Fetching proprietary vendor blob repositories..."
 git clone https://github.com/sohaibdevelop1290-oss/proprietary_vendor_oneplus_billie2 -b lineage-20 vendor/oneplus/billie2
@@ -137,24 +137,6 @@ if [ -f "$GAPPS_CONFIG" ]; then
     cat <<EOF >> "$GAPPS_CONFIG"
 CUSTOM_KEEP_APPS := ChromeHomePageProvider GoogleExtServices GooglePackageInstaller GmsCore Phonesky Chrome YouTube Gmail2 LatinIMEGoogle Drive GoogleSearchBox Photos
 PRODUCT_PACKAGES := \$(filter \$(CUSTOM_KEEP_APPS), \$(PRODUCT_PACKAGES))
-EOF
-fi
-
-# ---------------------------------------------------------------------
-# 7. CRUCIAL FIX: PARTITION & DEVICE OPEN ERROR MITIGATION RULES
-# ---------------------------------------------------------------------
-echo "🛠️ Hardcoding custom storage sizing and partition translation definitions..."
-BOARD_CONFIG="device/oneplus/billie2/BoardConfig.mk"
-if [ -f "$BOARD_CONFIG" ]; then
-    # Force alignment of dynamic mapping table to block Device Open Errors
-    sed -i 's/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := .*/BOARD_ONEPLUS_DYNAMIC_PARTITIONS_SIZE := 6442450944/g' "$BOARD_CONFIG"
-    
-    cat <<EOF >> "$BOARD_CONFIG"
-
-# Fixes for Recovery Verification Failures and Device Open Errors
-TARGET_RECOVERY_IGNORE_TIMESTAMP := true
-BOARD_SUPPRESS_SECURE_ERASE := true
-mke2fs_dry_run := true
 EOF
 fi
 
