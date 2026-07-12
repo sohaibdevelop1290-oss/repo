@@ -37,8 +37,6 @@ rm -rf device/oneplus/billie2
 rm -rf vendor/oneplus/billie2
 rm -rf kernel/oneplus/sm4250
 rm -rf hardware/oneplus
-rm -rf device/qcom/sepolicy_vndr
-# Removed chromium-webview purge as requested ✅
 
 # ---------------------------------------------------------------------
 # 3. PROJECT ELIXIR SOURCE INITIALIZATION & SYNCHRONIZATION
@@ -63,11 +61,7 @@ echo "📂 Cloning Linux kernel 4.19 architecture tree..."
 git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-20 kernel/oneplus/sm4250
 
 echo "📂 Cloning hardware implementation layers..."
-git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 hardware/oneplus
-
-echo "📂 Fetching Qualcomm legacy sepolicy structures..."
-rm -rf device/qcom/sepolicy_vndr
-git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy_vndr
+git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 hardware/OnePlus
 
 # ---------------------------------------------------------------------
 # 5. COMPILATION INITIATION (Android 13 Pure AOSP Target)
