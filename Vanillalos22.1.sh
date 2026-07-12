@@ -55,6 +55,8 @@ repo init --depth=1 -u https://github.com/LineageOS/android.git -b lineage-22.1 
 echo "⚡ Executing high-speed safe workspace synchronization via Crave fabric..."
 /opt/crave/resync.sh
 
+echo "🔄 Running requested repo sync command..."
+repo sync
 # ---------------------------------------------------------------------
 # 4. REMOTE TREES CLONING & DEPENDENCY MANAGEMENT
 # ---------------------------------------------------------------------
