@@ -81,12 +81,6 @@ git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_
 echo "🔧 Setting up cross-compilation toolchain and environment variables..."
 . build/envsetup.sh
 
-# Fixing modern Ubuntu legacy dependency missing issues seamlessly
-mkdir -p $HOME/.local/lib
-ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 $HOME/.local/lib/libncurses.so.5
-ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 $HOME/.local/lib/libtinfo.so.5
-export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
-
 echo "🚀 Starting full target production build (mka bacon)..."
 breakfast billie2 userdebug && mka bacon
 
