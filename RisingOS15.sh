@@ -35,8 +35,6 @@ rm -rf device/oneplus/billie2
 rm -rf vendor/oneplus/billie2
 rm -rf kernel/oneplus/sm4250
 rm -rf hardware/oneplus
-rm -rf device/qcom/sepolicy_vndr
-
 # ---------------------------------------------------------------------
 # 3. RISINGOS SOURCE INITIALIZATION & SYNCHRONIZATION
 # ---------------------------------------------------------------------
@@ -64,10 +62,6 @@ git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-
 
 echo "📂 Cloning hardware implementation layers..."
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-22.1 hardware/oneplus
-
-echo "📂 Fetching Qualcomm legacy sepolicy structures..."
-rm -rf device/qcom/sepolicy_vndr
-git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-22.1-legacy-um device/qcom/sepolicy_vndr
 
 # ---------------------------------------------------------------------
 # 5. COMPILATION INITIATION (RisingOS Environment Setup)
