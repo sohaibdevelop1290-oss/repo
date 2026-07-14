@@ -73,9 +73,13 @@ echo "🚀 Selecting target via official riseup build platform configuration..."
 riseup billie2 userdebug
 
 # 🛠️ آپ کا کسٹم فورک ریپلیسمنٹ کوڈ یہاں آئے گا:
-echo "🚀 Replacing GMS vendor with personal forked repository..."
+echo "🚀 Replacing GMS vendor & vendor/addons with personal forked repository..."
 rm -rf vendor/gms
 git clone https://gitlab.com/sohaibdevelop1290/android_vendor_gms.git -b fifteen vendor/gms
+
+# vendor/addons کو مینوئلی کلون کرنا تاکہ کوئی فائل مس نہ ہو
+rm -rf vendor/addons
+git clone https://github.com/RisingOS-Revived/android_vendor_addons.git -b fifteen vendor/addons
 
 # ---------------------------------------------------------------------
 # 6. SAFE CONFLICT RESOLUTION (CRAVE-APPROVED)
