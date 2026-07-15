@@ -81,6 +81,15 @@ git clone https://gitlab.com/sohaibdevelop1290/android_vendor_gms.git -b fifteen
 rm -rf vendor/addons
 git clone https://github.com/RisingOS-Revived/android_vendor_addons.git -b fifteen vendor/addons
 
+# 🔥 [FIX] NotifFluid تھیم کی خراب بلڈ ریسپی کو بائی پاس کرنے کے لیے فائل کو خالی کرنا
+echo "🩹 Wiping NotifFluid Android.bp to bypass dimensions/color errors..."
+if [ -f "vendor/addons/themes/notifications/NotifFluid/Android.bp" ]; then
+    echo "" > vendor/addons/themes/notifications/NotifFluid/Android.bp
+    echo "✅ NotifFluid successfully bypassed!"
+else
+    echo "⚠️ Warning: NotifFluid Android.bp not found, skipping bypass."
+fi
+
 # ---------------------------------------------------------------------
 # 6. SAFE CONFLICT RESOLUTION (CRAVE-APPROVED)
 # ---------------------------------------------------------------------
