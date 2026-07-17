@@ -81,74 +81,61 @@ make installclean
 echo "🧱 Starting Project Elixir Android 13 production compilation..."
 mka bacon -jX
 
-# ---------------------------------------------------------------------
-# 7. INSTANT IMAGE ARREST BLOCK (Converts super_empty.img to ZIP Automatically)
-# ---------------------------------------------------------------------
-echo "🔒 Triggering immediate target file inspection and capture..."
+# =====================================================================
+# 🛠️ FIXED UPLOAD SECTION (UPLOADS ZIP FILES & SUPER_EMPTY IMAGE)
+# =====================================================================
+echo "📍 Finding and capturing flashable ZIP artifacts and super_empty.img..."
 
-TARGET_IMG=$(find "${ROM_DIR}/out/target/product/${DEVICE}/obj/PACKAGING/" -name "super_empty.img" | head -n 1)
+# آؤٹ پٹ فولڈر کا پاتھ سیٹ کرنا
+OUT_DIR="out/target/product/${DEVICE}"
 
-if [ -n "$TARGET_IMG" ] && [ -f "$TARGET_IMG" ]; then
-    echo "📦 Found super_empty.img. Converting to zip archive automatically..."
-    zip -j "${ROM_DIR}/out/target/product/${DEVICE}/super_empty_protected.zip" "$TARGET_IMG"
-    echo "✅ Success: super_empty.img converted and locked before Crave storage flush!"
-else
-    echo "⚠️ Warning: super_empty.img could not be located in intermediate files."
-fi
-
-# ---------------------------------------------------------------------
-# 8. POST-BUILD ARTIFACT PROCESSING & SECURE CLOUD EXPORT
-# ---------------------------------------------------------------------
-echo "📍 Processing finalized flashable artifacts..."
-NOW=$(date +"%Y%m%d-%H%M")
-
-cd out/target/product/${DEVICE}/
-
-FLASHABLE_ZIP=$(find . -maxdepth 1 -name "ProjectElixir_*.zip" -o -name "projectelixir_*.zip" -o -name "aosp_*.zip" | grep -v "ota" | tail -n 1)
-OTA_ZIP=$(find . -maxdepth 1 -name "ProjectElixir_*-ota-*.zip" -o -name "aosp_*-ota-*.zip" | tail -n 1)
-PROTECTED_SUPER_ZIP="./super_empty_protected.zip"
-
-if [ -f "$PROTECTED_SUPER_ZIP" ]; then
-    mv "$PROTECTED_SUPER_ZIP" "./super_empty_protected-${NOW}.zip"
-    FINAL_SUPER_ZIP="$(pwd)/super_empty_protected-${NOW}.zip"
-fi
-
-if [ -f "$FLASHABLE_ZIP" ]; then
-    mv "$FLASHABLE_ZIP" "${FLASHABLE_ZIP%.zip}-${NOW}.zip"
-    FINAL_ROM_ZIP="$(pwd)/${FLASHABLE_ZIP%.zip}-${NOW}.zip"
-fi
-
-if [ -f "$OTA_ZIP" ]; then
-    mv "$OTA_ZIP" "${OTA_ZIP%.zip}-${NOW}.zip"
-    FINAL_OTA_ZIP="$(pwd)/${OTA_ZIP%.zip}-${NOW}.zip"
-fi
-
-# 🏢 PROFESSIONAL CLOUD UPLOAD CONTROLLERS
+# پروفیشنل گو فائل اپلوڈر فنکشن
 upload_to_gofile() {
     local file_path="$1"
     if [ -f "$file_path" ]; then
+        echo "📤 Uploading $(basename "$file_path") to GoFile..."
         local server=$(curl -s https://api.gofile.io/servers | grep -o '"name":"[^"]*' | head -n 1 | grep -o '[^"]*$')
         if [ -n "$server" ]; then
             local response=$(curl -s -F "file=@$file_path" "https://${server}.gofile.io/uploadFile")
             local download_page=$(echo "$response" | sed -n 's/.*"downloadPage":"\([^"]*\)".*/\1/p')
-            [ -n "$download_page" ] && echo "🌐 [GOFILE] Link: $download_page"
+            if [ -n "$download_page" ]; then
+                echo "🌐 [GOFILE LINK]: $download_page"
+            else
+                echo "❌ Upload failed or response was empty for $(basename "$file_path")."
+            fi
+        else
+            echo "❌ GoFile API server list could not be retrieved."
         fi
+    else
+        echo "⚠️ Warning: File not found at $file_path"
     fi
 }
 
-if [ -f "$FINAL_ROM_ZIP" ]; then
-    echo "📦 Exporting Flashable ROM Package..."
-    upload_to_gofile "$FINAL_ROM_ZIP"
-fi
+if [ -d "$OUT_DIR" ]; then
+    # 1. تمام زپ فائلز تلاش اور اپلوڈ کرنا
+    ZIPS=($(find "$OUT_DIR" -maxdepth 1 -name "*.zip" | grep -v "super_empty"))
+    
+    if [ ${#ZIPS[@]} -gt 0 ]; then
+        echo "📦 Found ${#ZIPS[@]} ZIP file(s). Initiating upload..."
+        for zip_file in "${ZIPS[@]}"; do
+            upload_to_gofile "$zip_file"
+        done
+    else
+        echo "❌ No ZIP files found in $OUT_DIR to upload."
+    fi
 
-if [ -f "$FINAL_OTA_ZIP" ]; then
-    echo "📦 Exporting OTA Update Package..."
-    upload_to_gofile "$FINAL_OTA_ZIP"
-fi
-
-if [ -f "$FINAL_SUPER_ZIP" ]; then
-    echo "📦 Exporting Intercepted Super Empty Image Archive..."
-    upload_to_gofile "$FINAL_SUPER_ZIP"
+    # 2. super_empty.img کو تلاش کرنا اور ڈائریکٹ اپلوڈ کرنا
+    echo "🔍 Searching for super_empty.img..."
+    SUPER_EMPTY=$(find "$OUT_DIR" -name "super_empty.img" | head -n 1)
+    
+    if [ -n "$SUPER_EMPTY" ] && [ -f "$SUPER_EMPTY" ]; then
+        echo "📦 Found super_empty.img at: $SUPER_EMPTY"
+        upload_to_gofile "$SUPER_EMPTY"
+    else
+        echo "⚠️ Warning: super_empty.img could not be located anywhere in $OUT_DIR"
+    fi
+else
+    echo "❌ Target output directory $OUT_DIR does not exist."
 fi
 
 echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
