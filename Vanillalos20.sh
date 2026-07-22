@@ -37,9 +37,6 @@ rm -rf .repo/local_manifests
 rm -rf .repo/manifests
 rm -rf .repo/manifest.xml
 
-echo "🗑️ Dropping legacy target security policy definitions..."
-rm -rf device/qcom/sepolicy-legacy-um
-
 echo "🔥 [CRUCIAL] Clearing target repository source trees to block Git checkout failures..."
 rm -rf device/oneplus/billie2
 rm -rf vendor/oneplus/billie2
@@ -69,9 +66,6 @@ git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-
 
 echo "📂 Fetching vendor hardware implementation layers..."
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 hardware/oneplus
-
-echo "📂 Fetching legacy Qualcomm platform security policy structures..."
-git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy-legacy-um
 
 # ---------------------------------------------------------------------
 # 5. HARDWARE FIXES & REGIONAL INJECTIONS (WI-FI & CAMERA)
