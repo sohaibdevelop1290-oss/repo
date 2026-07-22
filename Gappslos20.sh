@@ -79,51 +79,6 @@ rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b sigma vendor/gapps
 
 # ---------------------------------------------------------------------
-# 5. HARDWARE FIXES & REGIONAL INJECTIONS (WI-FI, CAMERA & FINGERPRINT)
-# ---------------------------------------------------------------------
-echo "📶 Injecting hardware Wi-Fi channel rules for PTCL and Global compliance..."
-WIFI_INI=$(find device/oneplus/billie2/ vendor/oneplus/billie2/ -name "WCNSS_qcom_cfg.ini" | head -n 1)
-if [ -n "$WIFI_INI" ] && [ -f "$WIFI_INI" ]; then
-    sed -i 's/gCrpCc=.*/gCrpCc=00/g' "$WIFI_INI" 2>/dev/null || echo "gCrpCc=00" >> "$WIFI_INI"
-    sed -i 's/gRegulatoryChangeCountry=.*/gRegulatoryChangeCountry=00/g' "$WIFI_INI" 2>/dev/null || echo "gRegulatoryChangeCountry=00" >> "$WIFI_INI"
-    sed -i 's/gChannelBondingMode24GHz=.*/gChannelBondingMode24GHz=1/g' "$WIFI_INI" 2>/dev/null
-fi
-
-WIFI_OVERLAY="device/oneplus/billie2/overlay/frameworks/base/core/res/res/values/config.xml"
-if [ -f "$WIFI_OVERLAY" ]; then
-    sed -i 's/<string name="config_wifi_operating_country_code">.*<\/string>/<string name="config_wifi_operating_country_code"><\/string>/g' "$WIFI_OVERLAY"
-fi
-
-echo "📺 Distributing fixed Fingerprint and Camera profiles across execution layers..."
-SYSTEM_PROP="device/oneplus/billie2/system.prop"
-VENDOR_PROP="device/oneplus/billie2/vendor_prop"
-
-# Cleaning existing system/vendor properties to avoid duplicate conflict
-mkdir -p $(dirname "$SYSTEM_PROP")
-mkdir -p $(dirname "$VENDOR_PROP")
-
-# Core Display & Media Framework Properties
-cat <<EOF >> "$SYSTEM_PROP"
-ro.hardware.egl=adreno
-debug.sf.enable_hwc_vds=1
-media.stagefright.thumbnail.prefer_hw_codecs=true
-EOF
-
-# 🛠️ HARDWARE DEEP FIX: Fingerprint Missing & Camera Dead Fixes
-cat <<EOF >> "$VENDOR_PROP"
-# Fingerprint HAL Force Load
-ro.hardware.fingerprint=goodix
-persist.vendor.qcom.fp.wakeup=1
-ro.vendor.undisplayed_fingerprint=true
-
-# Camera Sensor & Provider Permissions Fix
-vendor.camera.aux.packagelist=com.android.camera,org.lineageos.snap,org.codeaurora.snapcam
-persist.vendor.camera.privapp.list=com.android.camera,org.lineageos.snap,org.codeaurora.snapcam
-persist.vendor.camera.provider.direct_init=1
-vendor.display.enable_default_color_mode=1
-EOF
-
-# ---------------------------------------------------------------------
 # 6. GAPPS ARCHITECTURE LINKING & LITE APP FILTERING
 # ---------------------------------------------------------------------
 echo "🔗 Structuring MindTheGApps linkage inside product design maps..."
