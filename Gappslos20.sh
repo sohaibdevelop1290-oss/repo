@@ -38,9 +38,6 @@ rm -rf .repo/local_manifests
 rm -rf .repo/manifests
 rm -rf .repo/manifest.xml
 
-echo "🗑️ Dropping legacy target security policy definitions..."
-rm -rf device/qcom/sepolicy-legacy-um
-
 echo "🔥 [CRUCIAL] Clearing target repository source trees to block Git checkout failures..."
 rm -rf device/oneplus/billie2
 rm -rf vendor/oneplus/billie2
