@@ -71,9 +71,6 @@ git clone https://github.com/LineageOS/android_kernel_oneplus_sm4250 -b lineage-
 echo "📂 Fetching vendor hardware implementation layers..."
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-20 hardware/oneplus
 
-echo "📂 Fetching legacy Qualcomm platform security policy structures..."
-git clone https://github.com/sohaibdevelop1290-oss/android_device_qcom_sepolicy_vndr.git -b lineage-20.0-legacy-um device/qcom/sepolicy-legacy-um
-
 echo "📂 Fetching structural MindTheGApps core packages..."
 rm -rf vendor/gapps
 git clone https://gitlab.com/MindTheGapps/vendor_gapps.git -b sigma vendor/gapps
@@ -110,86 +107,61 @@ export LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 echo "🚀 Starting full target production build (mka bacon)..."
 breakfast billie2 userdebug && mka bacon
 
-# ---------------------------------------------------------------------
-# 9. INSTANT IMAGE ARREST BLOCK (Saves super_empty.img from Auto-Deletion)
-# ---------------------------------------------------------------------
-echo "🔒 Triggering immediate target file inspection and capture..."
-ROM_DIR="out/target/product/${DEVICE}"
+# =====================================================================
+# 🛠️ FIXED UPLOAD SECTION (UPLOADS ZIP FILES & SUPER_EMPTY IMAGE)
+# =====================================================================
+echo "📍 Finding and capturing flashable ZIP artifacts and super_empty.img..."
 
-# Locating and wrapping the build intermediate super_empty.img into a safe ZIP archive instantly
-find "${ROM_DIR}/obj/PACKAGING/" -name "super_empty.img" -exec zip -j "${ROM_DIR}/super_empty_protected.zip" {} \;
+# آؤٹ پٹ فولڈر کا پاتھ سیٹ کرنا
+OUT_DIR="out/target/product/${DEVICE}"
 
-if [ -f "${ROM_DIR}/super_empty_protected.zip" ]; then
-    echo "✅ Success: super_empty.img captured and locked before Crave storage flush!"
-else
-    echo "⚠️ Warning: super_empty.img could not be intercepted inside intermediate files."
-fi
-
-# ---------------------------------------------------------------------
-# 10. POST-BUILD ARTIFACT PROCESSING & SECURE CLOUD EXPORT
-# ---------------------------------------------------------------------
-echo "📍 Processing finalized flashable artifacts..."
-NOW=$(date +"%Y%m%d-%H%M")
-
-FLASHABLE_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage-20.0-*.zip" | grep -v "ota" | tail -n 1)
-OTA_ZIP=$(find "$ROM_DIR" -maxdepth 1 -name "lineage_billie2-ota-*.zip" | tail -n 1)
-PROTECTED_SUPER_ZIP="${ROM_DIR}/super_empty_protected.zip"
-
-# Appending execution timestamp to outputs
-if [ -f "$PROTECTED_SUPER_ZIP" ]; then
-    mv "$PROTECTED_SUPER_ZIP" "$ROM_DIR/super_empty_protected-${NOW}.zip"
-    PROTECTED_SUPER_ZIP="$ROM_DIR/super_empty_protected-${NOW}.zip"
-fi
-
-if [ -f "$FLASHABLE_ZIP" ]; then
-    mv "$FLASHABLE_ZIP" "${FLASHABLE_ZIP%.zip}-${NOW}.zip"
-    FINAL_ROM_ZIP="${FLASHABLE_ZIP%.zip}-${NOW}.zip"
-fi
-
-if [ -f "$OTA_ZIP" ]; then
-    mv "$OTA_ZIP" "${OTA_ZIP%.zip}-${NOW}.zip"
-    FINAL_OTA_ZIP="${OTA_ZIP%.zip}-${NOW}.zip"
-fi
-
-# 🏢 PROFESSIONAL CLOUD UPLOAD CONTROLLERS
+# پروفیشنل گو فائل اپلوڈر فنکشن
 upload_to_gofile() {
     local file_path="$1"
     if [ -f "$file_path" ]; then
+        echo "📤 Uploading $(basename "$file_path") to GoFile..."
         local server=$(curl -s https://api.gofile.io/servers | grep -o '"name":"[^"]*' | head -n 1 | grep -o '[^"]*$')
         if [ -n "$server" ]; then
             local response=$(curl -s -F "file=@$file_path" "https://${server}.gofile.io/uploadFile")
             local download_page=$(echo "$response" | sed -n 's/.*"downloadPage":"\([^"]*\)".*/\1/p')
-            [ -n "$download_page" ] && echo "🌐 [GOFILE] Link: $download_page"
+            if [ -n "$download_page" ]; then
+                echo "🌐 [GOFILE LINK]: $download_page"
+            else
+                echo "❌ Upload failed or response was empty for $(basename "$file_path")."
+            fi
+        else
+            echo "❌ GoFile API server list could not be retrieved."
         fi
+    else
+        echo "⚠️ Warning: File not found at $file_path"
     fi
 }
 
-upload_to_pixeldrain() {
-    local file_path="$1"
-    if [ -f "$file_path" ]; then
-        local response=$(curl -s -F "file=@$file_path" https://pixeldrain.com/api/file)
-        local file_id=$(echo "$response" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')
-        [ -n "$file_id" ] && echo "🌐 [PIXELDRAIN] Link: https://pixeldrain.com/u/$file_id"
+if [ -d "$OUT_DIR" ]; then
+    # 1. تمام زپ فائلز تلاش اور اپلوڈ کرنا
+    ZIPS=($(find "$OUT_DIR" -maxdepth 1 -name "*.zip" | grep -v "super_empty"))
+    
+    if [ ${#ZIPS[@]} -gt 0 ]; then
+        echo "📦 Found ${#ZIPS[@]} ZIP file(s). Initiating upload..."
+        for zip_file in "${ZIPS[@]}"; do
+            upload_to_gofile "$zip_file"
+        done
+    else
+        echo "❌ No ZIP files found in $OUT_DIR to upload."
     fi
-}
 
-# Execution of Exports
-if [ -f "$FINAL_ROM_ZIP" ]; then
-    echo "📦 Exporting Flashable ROM Package..."
-    upload_to_gofile "$FINAL_ROM_ZIP"
-    upload_to_pixeldrain "$FINAL_ROM_ZIP"
-fi
-
-if [ -f "$FINAL_OTA_ZIP" ]; then
-    echo "📦 Exporting OTA Update Package..."
-    upload_to_gofile "$FINAL_OTA_ZIP"
-    upload_to_pixeldrain "$FINAL_OTA_ZIP"
-fi
-
-if [ -f "$PROTECTED_SUPER_ZIP" ]; then
-    echo "📦 Exporting Intercepted Super Empty Image Archive..."
-    upload_to_gofile "$PROTECTED_SUPER_ZIP"
-    upload_to_pixeldrain "$PROTECTED_SUPER_ZIP"
+    # 2. super_empty.img کو تلاش کرنا اور ڈائریکٹ اپلوڈ کرنا
+    echo "🔍 Searching for super_empty.img..."
+    SUPER_EMPTY=$(find "$OUT_DIR" -name "super_empty.img" | head -n 1)
+    
+    if [ -n "$SUPER_EMPTY" ] && [ -f "$SUPER_EMPTY" ]; then
+        echo "📦 Found super_empty.img at: $SUPER_EMPTY"
+        upload_to_gofile "$SUPER_EMPTY"
+    else
+        echo "⚠️ Warning: super_empty.img could not be located anywhere in $OUT_DIR"
+    fi
+else
+    echo "❌ Target output directory $OUT_DIR does not exist."
 fi
 
 echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
