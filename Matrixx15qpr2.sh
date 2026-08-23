@@ -71,9 +71,6 @@ echo "🩹 Stripping deprecated vndk blocks from tree Android.bp files..."
 find device/oneplus/billie2 vendor/oneplus/billie2 hardware/oneplus kernel/oneplus/sm4250 \
     -name "Android.bp" -type f -exec sed -i '/vndk:/,/}/d' {} + 2>/dev/null || true
 
-find device/oneplus/billie2 vendor/oneplus/billie2 hardware/oneplus kernel/oneplus/sm4250 \
-    -name "Android.bp" -type f -exec sed -i '/enabled: true/d' {} + 2>/dev/null || true
-
 # ---------------------------------------------------------------------
 # 5. COMPILATION INITIATION & BUILD EXECUTION
 # ---------------------------------------------------------------------
