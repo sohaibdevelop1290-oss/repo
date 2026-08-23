@@ -43,6 +43,9 @@ rm -rf hardware/oneplus
 echo "⚙️ Initializing upstream Project Matrixx Android 15 manifest..."
 repo init -u https://github.com/ProjectMatrixx/android.git -b 15.0 --git-lfs
 
+echo "⚡ Executing dual-sync mechanism (Crave Fabric + Manual Backup)..."
+/opt/crave/resync.sh
+
 echo "🔄 Running requested repo sync command..."
 repo sync -c --no-clone-bundle --optimized-fetch --prune --force-sync -j$(nproc --all)
 
