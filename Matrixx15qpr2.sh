@@ -15,7 +15,7 @@
 echo "⚙️ Setting up Matrixx OS Android 15 environment parameters..."
 export DEVICE="billie2"
 export SKIP_ABI_CHECKS=true
-export TEMPORARY_DISABLE_PATH_RESTRICTIONS=true
+export USE_CCACHE=0
 
 # Force UTF-8 encoding for terminal compatibility
 export LANG=C.UTF-8
@@ -43,9 +43,6 @@ rm -rf hardware/oneplus
 # ---------------------------------------------------------------------
 echo "⚙️ Initializing upstream Project Matrixx Android 15 manifest..."
 repo init -u https://github.com/ProjectMatrixx/android.git -b 15.0 --git-lfs
-
-echo "⚡ Executing dual-sync mechanism (Crave Fabric + Manual Backup)..."
-/opt/crave/resync.sh
 
 echo "🔄 Running main repo sync..."
 repo sync -c --no-clone-bundle --optimized-fetch --prune --force-sync -j$(nproc --all) || true
@@ -145,4 +142,3 @@ else
 fi
 
 echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
-
