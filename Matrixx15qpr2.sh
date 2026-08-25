@@ -15,6 +15,7 @@
 echo "⚙️ Setting up Matrixx OS Android 15 environment parameters..."
 export DEVICE="billie2"
 export SKIP_ABI_CHECKS=true
+export TEMPORARY_DISABLE_PATH_RESTRICTIONS=true
 
 # Force UTF-8 encoding for terminal compatibility
 export LANG=C.UTF-8
@@ -43,12 +44,18 @@ rm -rf hardware/oneplus
 echo "⚙️ Initializing upstream Project Matrixx Android 15 manifest..."
 repo init -u https://github.com/ProjectMatrixx/android.git -b 15.0 --git-lfs
 
-echo "⚡ Executing dual-sync mechanism (Crave Fabric + Manual Backup)..."
-/opt/crave/resync.sh
+echo "🔄 Running main repo sync..."
+repo sync -c --no-clone-bundle --optimized-fetch --prune --force-sync -j$(nproc --all) || true
 
-echo "🔄 Running robust repo sync command..."
-repo sync -c --no-clone-bundle --optimized-fetch --prune --force-sync -j$(nproc --all) || repo sync -c --no-clone-bundle --optimized-fetch --prune --force-sync -j4
+# ---------------------------------------------------------------------
+# 🚀 FAST MANUAL GIT CLONE FOR FRAMEWORKS/BASE ONLY
+# ---------------------------------------------------------------------
+echo "⚡ Force-purging and cloning frameworks/base directly via git..."
 
+rm -rf frameworks/base
+
+echo "📥 Cloning frameworks/base..."
+git clone https://github.com/ProjectMatrixx/frameworks_base.git -b 15.0 frameworks/base --depth=1
 
 # ---------------------------------------------------------------------
 # 4. FETCHING CUSTOM PRODUCTION TREES
@@ -66,11 +73,11 @@ echo "📂 Cloning hardware implementation layers (lineage-22.2)..."
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-22.2 hardware/oneplus
 
 # ---------------------------------------------------------------------
-# 🛠️ AUTO-FIX: PURGING DEPRECATED VNDK ENTRIES FOR A15 COMPATIBILITY
+# 🛠️ SAFE AUTO-FIX: TARGETED VNDK BLOCK REMOVAL
 # ---------------------------------------------------------------------
-echo "🩹 Stripping deprecated vndk blocks from tree Android.bp files..."
+echo "🩹 Stripping deprecated vndk blocks safely from trees..."
 find device/oneplus/billie2 vendor/oneplus/billie2 hardware/oneplus kernel/oneplus/sm4250 \
-    -name "Android.bp" -type f -exec sed -i '/vndk:/,/}/d' {} + 2>/dev/null || true
+    -name "Android.bp" -type f -exec sed -i '/vndk: {/,/}/d' {} + 2>/dev/null || true
 
 # ---------------------------------------------------------------------
 # 5. COMPILATION INITIATION & BUILD EXECUTION
@@ -135,3 +142,4 @@ else
 fi
 
 echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
+
