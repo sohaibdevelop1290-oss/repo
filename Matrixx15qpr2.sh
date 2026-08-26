@@ -30,7 +30,6 @@ mkdir -p out/target/product/${DEVICE}/
 echo "🧹 Safely removing old zip and image artifacts..."
 rm -rf out/target/product/${DEVICE}/*.zip
 rm -rf out/target/product/${DEVICE}/*.img
-rm -rf .repo/local_manifests .repo/manifests .repo/manifest.xml
 
 echo "🔥 Purging older device trees to prevent git conflicts..."
 rm -rf device/oneplus/billie2
