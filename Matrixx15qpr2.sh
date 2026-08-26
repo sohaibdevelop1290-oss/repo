@@ -76,13 +76,6 @@ echo "📂 Cloning hardware implementation layers (lineage-22.2)..."
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-22.2 hardware/oneplus
 
 # ---------------------------------------------------------------------
-# 🛠️ SAFE AUTO-FIX: TARGETED VNDK BLOCK REMOVAL
-# ---------------------------------------------------------------------
-echo "🩹 Stripping deprecated vndk blocks safely from trees..."
-find device/oneplus/billie2 vendor/oneplus/billie2 hardware/oneplus kernel/oneplus/sm4250 \
-    -name "Android.bp" -type f -exec sed -i '/vndk: {/,/}/d' {} + 2>/dev/null || true
-
-# ---------------------------------------------------------------------
 # 5. COMPILATION INITIATION & BUILD EXECUTION
 # ---------------------------------------------------------------------
 echo "🔧 Setting up build environment and initiating compilation..."
@@ -145,3 +138,4 @@ else
 fi
 
 echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
+
