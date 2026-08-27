@@ -81,6 +81,22 @@ echo "🔧 Setting up build environment and initiating compilation..."
 . build/envsetup.sh
 brunch billie2 userdebug
 
+# 🔴 CAPTURE THE EXACT BUILD EXIT STATUS CODE
+BUILD_STATUS=$?
+
+if [ $BUILD_STATUS -ne 0 ]; then
+    echo "========================================================"
+    echo "❌ [BUILD FAILED] Compilation process stopped with errors!"
+    echo "⚠️ Exit Code: $BUILD_STATUS"
+    echo "========================================================"
+    exit 1
+fi
+
+echo "========================================================"
+echo "🎉 [BUILD SUCCESSFUL] ROM compiled successfully!"
+echo "========================================================"
+
+
 # =====================================================================
 # 🛠️ UPLOAD SECTION (UPLOADS ZIP FILES & SUPER_EMPTY IMAGE)
 # =====================================================================
