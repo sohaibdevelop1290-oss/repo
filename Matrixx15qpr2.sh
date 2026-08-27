@@ -5,7 +5,7 @@
 # =====================================================================
 # ⚙️ Target Device: OnePlus Nord N100 (billie2)
 # 🔄 Base Source: Project Matrixx OS (Android 15)
-# 💻 Environment: Cloud Optimized for Crave.io Workspace (No Clean)
+# 💻 Environment: Cloud Optimized for Crave.io Workspace
 # 👤 Maintainer: Sohaib
 # =====================================================================
 
@@ -17,11 +17,16 @@ export DEVICE="billie2"
 export SKIP_ABI_CHECKS=true
 export USE_CCACHE=0
 
-# Force UTF-8 encoding for terminal compatibility
+# Force UTF-8 encoding
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 
-# Pre-create the output directory structure
+# ---------------------------------------------------------------------
+# 🧹 FORCE PURGING CRAVE OUT & SOONG CACHE DIRECTORIES
+# ---------------------------------------------------------------------
+echo "🚨 Cleaning corrupted Crave build caches and out folder..."
+rm -rf out/soong
+rm -rf out/target/product/${DEVICE}
 mkdir -p out/target/product/${DEVICE}/
 
 # ---------------------------------------------------------------------
@@ -30,6 +35,7 @@ mkdir -p out/target/product/${DEVICE}/
 echo "🧹 Safely removing old zip and image artifacts..."
 rm -rf out/target/product/${DEVICE}/*.zip
 rm -rf out/target/product/${DEVICE}/*.img
+rm -rf .repo/local_manifests .repo/manifests .repo/manifest.xml
 
 echo "🔥 Purging older device trees to prevent git conflicts..."
 rm -rf device/oneplus/billie2
@@ -38,7 +44,7 @@ rm -rf kernel/oneplus/sm4250
 rm -rf hardware/oneplus
 
 # ---------------------------------------------------------------------
-# 3. MATRIXX OS SOURCE INITIALIZATION & SYNCHRONIZATION
+# 3. MATRIXX OS SOURCE INITIALIZATION & DUAL-SYNC MECHANISM
 # ---------------------------------------------------------------------
 echo "⚙️ Initializing upstream Project Matrixx Android 15 manifest..."
 repo init -u https://github.com/ProjectMatrixx/android.git -b 15.0 --git-lfs
@@ -50,14 +56,11 @@ echo "🔄 Running main repo sync..."
 repo sync -c --no-clone-bundle --optimized-fetch --prune --force-sync -j$(nproc --all) || true
 
 # ---------------------------------------------------------------------
-# 🚀 FAST MANUAL GIT CLONE FOR FRAMEWORKS/BASE ONLY
+# 🚀 CLONING OFFICIAL ANDROID 15 FRAMEWORKS/BASE (BRANCH: 15.0)
 # ---------------------------------------------------------------------
-echo "⚡ Force-purging and cloning frameworks/base directly via git..."
-
+echo "⚡ Force-purging and cloning official A15 frameworks/base (15.0)..."
 rm -rf frameworks/base
-
-echo "📥 Cloning frameworks/base..."
-git clone https://github.com/ProjectMatrixx/frameworks_base.git -b 15.0 frameworks/base --depth=1
+git clone https://github.com/ProjectMatrixx/android_frameworks_base_A15.git -b 15.0 frameworks/base --depth=1
 
 # ---------------------------------------------------------------------
 # 4. FETCHING CUSTOM PRODUCTION TREES
@@ -75,7 +78,7 @@ echo "📂 Cloning hardware implementation layers (lineage-22.2)..."
 git clone https://github.com/LineageOS/android_hardware_oneplus -b lineage-22.2 hardware/oneplus
 
 # ---------------------------------------------------------------------
-# 5. COMPILATION INITIATION & BUILD EXECUTION
+# 5. COMPILATION INITIATION & STRICT BUILD EXECUTION
 # ---------------------------------------------------------------------
 echo "🔧 Setting up build environment and initiating compilation..."
 . build/envsetup.sh
@@ -89,6 +92,7 @@ if [ $BUILD_STATUS -ne 0 ]; then
     echo "❌ [BUILD FAILED] Compilation process stopped with errors!"
     echo "⚠️ Exit Code: $BUILD_STATUS"
     echo "========================================================"
+    # Exits immediately with error code so Crave flags it as an actual Failure
     exit 1
 fi
 
@@ -96,12 +100,10 @@ echo "========================================================"
 echo "🎉 [BUILD SUCCESSFUL] ROM compiled successfully!"
 echo "========================================================"
 
-
 # =====================================================================
-# 🛠️ UPLOAD SECTION (UPLOADS ZIP FILES & SUPER_EMPTY IMAGE)
+# 🛠️ UPLOAD SECTION (ONLY RUNS IF BUILD WAS SUCCESSFUL)
 # =====================================================================
 echo "📍 Finding and capturing flashable ZIP artifacts and super_empty.img..."
-
 OUT_DIR="out/target/product/${DEVICE}"
 
 upload_to_gofile() {
@@ -126,9 +128,7 @@ upload_to_gofile() {
 }
 
 if [ -d "$OUT_DIR" ]; then
-    # 1. Zip Files Upload
     ZIPS=($(find "$OUT_DIR" -maxdepth 1 -name "*.zip" | grep -v "super_empty"))
-    
     if [ ${#ZIPS[@]} -gt 0 ]; then
         echo "📦 Found ${#ZIPS[@]} ZIP file(s). Initiating upload..."
         for zip_file in "${ZIPS[@]}"; do
@@ -138,10 +138,8 @@ if [ -d "$OUT_DIR" ]; then
         echo "❌ No ZIP files found in $OUT_DIR to upload."
     fi
 
-    # 2. super_empty.img Upload
     echo "🔍 Searching for super_empty.img..."
     SUPER_EMPTY=$(find "$OUT_DIR" -name "super_empty.img" | head -n 1)
-    
     if [ -n "$SUPER_EMPTY" ] && [ -f "$SUPER_EMPTY" ]; then
         echo "📦 Found super_empty.img at: $SUPER_EMPTY"
         upload_to_gofile "$SUPER_EMPTY"
@@ -152,5 +150,4 @@ else
     echo "❌ Target output directory $OUT_DIR does not exist."
 fi
 
-echo "🏁 [SUCCESS] Full build execution lifecycle finalized cleanly!"
-
+echo "🏁 Full build & upload lifecycle finalized cleanly!"
